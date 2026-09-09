@@ -1,0 +1,46 @@
+/*
+ * Project-specific overrides. Loaded after every template stylesheet.
+ * Keep this file small — the goal is to leave the template CSS untouched so it
+ * can be re-synced if the author ships an update.
+ */
+
+/* next/image renders a wrapper span in some layouts; keep it out of the way. */
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+/* The template styles #menu-btn as a div; reset the button defaults. */
+#menu-btn {
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+}
+
+/* Same for the gallery thumbnails, which are buttons here rather than <a>. */
+.gallery-filter button,
+.de-gallery-item button {
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+}
+
+/* SplitText needs overflow hidden on the line wrapper for the mask effect. */
+.split-line {
+  overflow: hidden;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
