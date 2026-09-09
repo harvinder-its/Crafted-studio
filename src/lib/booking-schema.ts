@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { bookableServices } from "./site";
 
 /** Shared by the client form and the API route, so validation can't drift. */
 export const bookingSchema = z.object({
@@ -10,13 +11,24 @@ export const bookingSchema = z.object({
     .min(7, "Please enter a phone number")
     .max(30)
     .regex(/^[\d\s()+.-]+$/, "Please enter a valid phone number"),
-  service: z.string().trim().min(1, "Please choose a service").max(100),
-  barber: z.string().trim().max(100).optional().or(z.literal("")),
-  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Please choose a date"),
-  time: z.string().regex(/^\d{2}:\d{2}$/, "Please choose a time"),
+  service: z.enum(bookableServices, { error: "Please choose a service" }),
+  date: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, "Please choose a date")
+    // A shape check alone would accept 2026-02-31, so confirm the calendar
+    // round-trips the value.
+    .refine((value) => {
+      const parsed = new Date(`${value}T00:00:00Z`);
+      return !Number.isNaN(parsed.getTime()) && parsed.toISOString().startsWith(value);
+    }, "Please choose a date"),
+  time: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, "Please choose a time"),
   message: z.string().trim().max(1000).optional().or(z.literal("")),
-  // Honeypot — real users never fill this. Bots usually do.
-  company: z.string().max(0).optional().or(z.literal("")),
+  /**
+   * Honeypot. Kept permissive on purpose: the API route inspects it and returns
+   * a success response, so a bot never learns the field is what gave it away.
+   * Rejecting it here would surface the trap in the validation errors instead.
+   */
+  company: z.string().max(200).optional(),
 });
 
 export type BookingInput = z.infer<typeof bookingSchema>;

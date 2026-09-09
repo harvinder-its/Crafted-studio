@@ -1,1 +1,13 @@
-/* PLACEHOLDER — overwrite with css/colors/gold.css from the purchased Barberon zip */
+* {
+  --primary-color: #C8A46A;
+  --primary-color-rgb: 200, 164, 106;
+
+  --secondary-color: #E2C58F;
+  --secondary-color-rgb: 226, 197, 143;
+
+  --bg-dark-1: #171311;
+  --bg-dark-1-rgb: 23, 19, 17;
+
+  --bg-dark-2: #221D1A;
+  --bg-dark-3: #302926;
+}

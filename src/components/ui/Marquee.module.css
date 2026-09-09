@@ -1,3 +1,9 @@
+/*
+ * CSS replacement for jquery.marquee (custom-marquee.js). The plugin duplicated
+ * the track and translated it; a keyframe on a doubled track does the same with
+ * no JavaScript and no layout thrash.
+ */
+
 .marquee {
   overflow: hidden;
   width: 100%;
@@ -15,8 +21,10 @@
   display: flex;
   align-items: center;
   flex-shrink: 0;
+  white-space: nowrap;
 }
 
+/* The track holds two identical groups, so -50% lands exactly on the seam. */
 @keyframes scroll {
   from {
     transform: translateX(0);

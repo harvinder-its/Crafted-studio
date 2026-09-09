@@ -43,7 +43,11 @@ export async function POST(request: Request) {
   const parsed = bookingSchema.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json(
-      { ok: false, fieldErrors: z_flatten(parsed.error) },
+      {
+        ok: false,
+        error: "Please check the highlighted fields and try again.",
+        fieldErrors: z_flatten(parsed.error),
+      },
       { status: 400 },
     );
   }
@@ -74,7 +78,6 @@ export async function POST(request: Request) {
     ["Email", data.email],
     ["Phone", data.phone],
     ["Service", data.service],
-    ["Barber", data.barber || "No preference"],
     ["Date", data.date],
     ["Time", data.time],
     ["Notes", data.message || "—"],

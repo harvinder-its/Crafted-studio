@@ -1,37 +1,193 @@
 /*
- * Project-specific overrides. Loaded after every template stylesheet.
- * Keep this file small — the goal is to leave the template CSS untouched so it
- * can be re-synced if the author ships an update.
+ * Project overrides, loaded after every template stylesheet.
+ *
+ * Deliberately small: the template CSS is used verbatim so it can be re-synced
+ * if the author ships an update. Everything here either (a) re-creates a style
+ * designesia.js used to apply from JavaScript, or (b) adapts an element the
+ * React port renders differently (a <button> where the template had an <a>).
  */
 
-/* next/image renders a wrapper span in some layouts; keep it out of the way. */
-img {
-  max-width: 100%;
-  height: auto;
+/* --------------------------------------------------
+ * Fonts
+ * The template declares its font stacks on `*`, not `:root`, so an override
+ * has to use `*` too — a `:root` rule would lose to it on every descendant.
+ * The family names come from next/font, which self-hosts them.
+ * -------------------------------------------------- */
+* {
+  --body-font: var(--font-dm-sans), Helvetica, Arial, sans-serif;
+  --heading-font: var(--font-playfair-display), Helvetica, Arial, sans-serif;
 }
 
-/* The template styles #menu-btn as a div; reset the button defaults. */
-#menu-btn {
+/* --------------------------------------------------
+ * Replaces designesia.js `customBg()`, which set these on every
+ * body/div/section so that `data-bgimage` backgrounds filled their box.
+ * -------------------------------------------------- */
+body,
+div,
+section {
+  background-size: cover;
+  background-repeat: no-repeat;
+}
+
+/* --------------------------------------------------
+ * Mobile header, first paint
+ *
+ * designesia.js added `header-mobile` from JavaScript, and the template's whole
+ * collapsed-drawer style hangs off it. In an SSR app that class only lands after
+ * hydration, which would flash the open nav list over the hero. These two rules
+ * are copies of the `header.header-mobile` ones in style.css (≤992px), applied
+ * without the class so the collapsed state is right from the first frame; adding
+ * the class later then changes nothing.
+ *
+ * The class is still needed — several `header.header-mobile` rules in style.css
+ * are NOT media-gated, including the one that suppresses the desktop mega-menu
+ * hover, so it must not simply be hardcoded on.
+ * -------------------------------------------------- */
+@media only screen and (max-width: 992px) {
+  header {
+    overflow: hidden;
+    position: relative;
+  }
+
+  header #mainmenu {
+    width: 100%;
+    padding-right: 30px;
+    position: absolute;
+  }
+}
+
+/* --------------------------------------------------
+ * Elements the port renders as buttons
+ *
+ * Several things the template wrote as <a> or <input> are <button> here, because
+ * they act on the page rather than navigate: the menu toggle, the gallery
+ * thumbnails, the booking submit. This clears the user-agent chrome so they look
+ * like what they replaced.
+ *
+ * Deliberately a bare element selector: at specificity (0,0,1) every template
+ * class — `.btn-main`, `.menu-item`, `.page-link` — still wins, so the buttons
+ * pick up their real styling instead of this reset.
+ * -------------------------------------------------- */
+button {
   background: none;
   border: 0;
   padding: 0;
-  cursor: pointer;
-}
-
-/* Same for the gallery thumbnails, which are buttons here rather than <a>. */
-.gallery-filter button,
-.de-gallery-item button {
-  background: none;
-  border: 0;
-  padding: 0;
-  cursor: pointer;
   font: inherit;
   color: inherit;
+  text-align: inherit;
+  cursor: pointer;
 }
 
-/* SplitText needs overflow hidden on the line wrapper for the mask effect. */
-.split-line {
+/* --------------------------------------------------
+ * Scroll reveals (the WOW.js replacement)
+ *
+ * WOW.js hid `.wow` elements from JavaScript, so a visitor without it saw the
+ * page fine. Hiding here is plain CSS, and a <noscript> style block in the root
+ * layout undoes it when scripting is off — same guarantee, but the server and
+ * client render identical markup.
+ * -------------------------------------------------- */
+.reveal:not(.animated),
+.char:not(.animated) {
+  visibility: hidden;
+}
+
+/*
+ * splitTextToChars() replacement. The spans stay `display: inline`, as they were
+ * in the template: inline-block would make every character a line-break
+ * opportunity and wrap headings mid-word. Inline boxes ignore `transform`, so —
+ * exactly as in the original — the per-character animation is the opacity half
+ * of fadeInUp, with no vertical travel.
+ */
+
+/* --------------------------------------------------
+ * Parallax (replaces the Jarallax plugin, which set these inline)
+ * -------------------------------------------------- */
+.parallax {
+  position: relative;
   overflow: hidden;
+  /* Makes the section a stacking context, so the negative-z media layer below
+     paints above the section's own background but under all of its content —
+     which is exactly where Jarallax used to put its <img class="jarallax-img">.
+     Overlays and captions keep whatever positioning the template gave them. */
+  isolation: isolate;
+}
+
+.parallax > .parallax-media {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+}
+
+.parallax-media-inner {
+  position: absolute;
+  /* Overscan so the translated media never exposes an edge. */
+  inset: -20% 0;
+  will-change: transform;
+}
+
+.parallax-media-inner img,
+.parallax-media-inner video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* --------------------------------------------------
+ * `.gs-fixed` (replaces the position/top writes in custom-gsap.js)
+ * Sticky holds the card mid-viewport while its section passes.
+ * -------------------------------------------------- */
+.gs-fixed {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+}
+
+/* --------------------------------------------------
+ * Rotating hero headline (replaces the owl-single-fade carousel)
+ * Every headline is stacked in the same box; only the active one shows.
+ * -------------------------------------------------- */
+.rotating-headline {
+  position: relative;
+  display: grid;
+}
+
+.rotating-headline > h1 {
+  grid-area: 1 / 1;
+  margin-bottom: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.rotating-headline > h1.is-active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* --------------------------------------------------
+ * Misc
+ * -------------------------------------------------- */
+
+/*
+ * next/image writes width/height attributes, so an image the template sizes by
+ * width alone would be stretched to the intrinsic height. Restore `auto` for
+ * each of those utilities — but not where the template also sets a height
+ * (`.h-100` on the team hover portraits, which must fill their card).
+ */
+img.w-100:not(.h-100),
+img.w-50px,
+img.w-70px,
+img.w-90px,
+img.w-100px,
+img.w-200px,
+img.logo-main,
+img.logo-scroll,
+img.logo-mobile,
+img.logo-footer {
+  height: auto;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -42,5 +198,34 @@ img {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+  }
+
+  /* Nothing waits to be revealed when there is no animation to wait for. */
+  .reveal:not(.animated),
+  .char:not(.animated) {
+    visibility: visible;
+  }
+
+  /*
+   * The reviews / history bands are read by scrolling their track sideways,
+   * which is pinned motion this mode turns off. Wrapping the track puts every
+   * panel back in the normal vertical flow instead of clipping all but the
+   * first.
+   */
+  .testimonials-track {
+    flex-wrap: wrap;
+  }
+
+  .testimonials-horizontal {
+    overflow: visible;
+  }
+
+  .rotating-headline > h1 {
+    opacity: 1;
+    position: static;
+  }
+
+  .rotating-headline {
+    display: block;
   }
 }

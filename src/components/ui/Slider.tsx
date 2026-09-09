@@ -1,59 +1,43 @@
 "use client";
 
 import { Swiper, SwiperSlide } from "swiper/react";
-import {
-  Autoplay,
-  EffectFade,
-  Navigation,
-  Pagination,
-  Parallax,
-} from "swiper/modules";
-import type { SwiperOptions } from "swiper/types";
+import { Autoplay, EffectCreative, Navigation } from "swiper/modules";
 import type { ReactNode } from "react";
 
-// NOTE: Swiper's own CSS is intentionally NOT imported here. The template ships
-// css/swiper.css, which is imported once in app/layout.tsx and already carries the
-// bundled Swiper styles plus the theme's overrides. Importing both causes conflicts.
-
-type SliderProps = {
-  slides: ReactNode[];
-  className?: string;
-  navigation?: boolean;
-  pagination?: boolean;
-  /** Milliseconds between slides; pass 0 to disable autoplay. */
-  autoplay?: number;
-  fade?: boolean;
-  loop?: boolean;
-  options?: SwiperOptions;
-};
+// Swiper's own CSS is deliberately NOT imported here: the template ships
+// css/swiper.css, imported once in app/layout.tsx, which already carries the
+// bundled Swiper styles plus the theme's overrides. Importing both conflicts.
 
 /**
- * Replaces custom-swiper-1.js. One wrapper covers the hero slider, the reviews
- * carousel and the team carousel — pass different `options` per use.
+ * Replaces custom-swiper-1.js — same creative effect, 4s autoplay and 1.8s
+ * transition the template configured, driven by the React bindings instead of
+ * a global `new Swiper('.swiper')` that would break on client navigation.
  */
 export default function Slider({
   slides,
-  className,
-  navigation = true,
-  pagination = true,
-  autoplay = 5000,
-  fade = false,
-  loop = true,
-  options,
-}: SliderProps) {
+  className = "",
+  navigation = false,
+}: {
+  slides: ReactNode[];
+  className?: string;
+  navigation?: boolean;
+}) {
   return (
     <Swiper
       className={className}
-      modules={[Navigation, Pagination, Autoplay, EffectFade, Parallax]}
-      navigation={navigation}
-      pagination={pagination ? { clickable: true } : false}
-      autoplay={autoplay ? { delay: autoplay, disableOnInteraction: false } : false}
-      effect={fade ? "fade" : undefined}
-      fadeEffect={fade ? { crossFade: true } : undefined}
-      loop={loop}
-      speed={800}
-      parallax
-      {...options}
+      modules={[Autoplay, EffectCreative, Navigation]}
+      autoplay={{ delay: 4000, disableOnInteraction: false }}
+      loop
+      spaceBetween={0}
+      speed={1800}
+      effect="creative"
+      creativeEffect={{
+        prev: { scale: 1.02, opacity: 0, translate: [0, 0, 0] },
+        next: { scale: 1.08, opacity: 0, translate: [0, 0, 0] },
+      }}
+      navigation={
+        navigation ? { nextEl: ".swiper-button-next", prevEl: ".swiper-button-prev" } : false
+      }
     >
       {slides.map((slide, i) => (
         <SwiperSlide key={i}>{slide}</SwiperSlide>
