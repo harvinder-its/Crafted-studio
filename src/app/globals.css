@@ -40,8 +40,7 @@ section {
  * the class later then changes nothing.
  *
  * The class is still needed — several `header.header-mobile` rules in style.css
- * are NOT media-gated, including the one that suppresses the desktop mega-menu
- * hover, so it must not simply be hardcoded on.
+ * are NOT media-gated, so it must not simply be hardcoded on.
  * -------------------------------------------------- */
 @media only screen and (max-width: 992px) {
   header {
@@ -183,11 +182,42 @@ img.w-70px,
 img.w-90px,
 img.w-100px,
 img.w-200px,
-img.logo-main,
-img.logo-scroll,
-img.logo-mobile,
 img.logo-footer {
   height: auto;
+}
+
+/*
+ * Header logo: a fixed 65px tall in every header state (top, scrolled, mobile),
+ * so it never resizes on scroll. The Crafted Studio lockup is ~3:1, which makes
+ * it ~195px wide. `#logo` outranks the template's `div#logo img` max-width cap.
+ */
+header #logo img.logo-main,
+header #logo img.logo-scroll,
+header #logo img.logo-mobile {
+  width: auto;
+  max-width: none;
+  height: 65px;
+}
+
+/*
+ * The Crafted Studio stacked lockup is portrait (0.8:1) where the template's
+ * hero logo was 2:1 landscape. At the template's `w-100` it would stand ~550px
+ * tall and shove the slide caption down, so cap the height instead — this keeps
+ * the caption where the template put it.
+ */
+img.hero-logo {
+  display: block;
+  width: auto;
+  max-width: 100%;
+  height: auto;
+  max-height: 240px;
+  margin-inline: auto;
+}
+
+@media (max-width: 767px) {
+  img.hero-logo {
+    max-height: 150px;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

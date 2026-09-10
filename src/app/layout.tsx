@@ -53,7 +53,8 @@ export const metadata: Metadata = {
   },
   description:
     "Precision haircuts, skin fades, beard grooming and hot towel shaves in New York. Book your chair online.",
-  icons: { icon: "/images/icon.webp" },
+  // Icons come from the file conventions: app/favicon.ico, app/icon.png and
+  // app/apple-icon.png (the Crafted Studio mark) are linked automatically.
   openGraph: {
     siteName: site.name,
     title: `${site.name} – ${site.tagline}`,

@@ -45,34 +45,6 @@ export const nav = [
   { label: "Blog", href: "/blog", section: "/blog" },
 ] as const;
 
-/** The header's "Demo" mega menu — one card per homepage variant. */
-export const demos = [
-  {
-    label: "Main",
-    image: "/images/demo/homepage-1.webp",
-    multipage: "/",
-    onepage: "/onepage",
-  },
-  {
-    label: "Slider",
-    image: "/images/demo/homepage-2.webp",
-    multipage: "/demo/dark-slider",
-    onepage: "/onepage/dark-slider",
-  },
-  {
-    label: "Video Background",
-    image: "/images/demo/homepage-3.webp",
-    multipage: "/demo/dark-video-background",
-    onepage: "/onepage/dark-video-background",
-  },
-  {
-    label: "Static Image",
-    image: "/images/demo/homepage-4.webp",
-    multipage: "/demo/dark-static-image",
-    onepage: "/onepage/dark-static-image",
-  },
-] as const;
-
 export const footerNav = [
   { label: "About", section: "#section-about" },
   { label: "Services", section: "#section-services" },

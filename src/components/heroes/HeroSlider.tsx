@@ -27,11 +27,11 @@ export default function HeroSlider() {
                   <div className="row gx-5 align-items-center justify-content-center">
                     <div className="col-md-4 col-8">
                       <Image
-                        src="/images/logo-big.webp"
-                        className="w-100 animated anim-order-1"
-                        alt="Barberon"
-                        width={600}
-                        height={307}
+                        src="/images/logo-stacked.webp"
+                        className="hero-logo animated anim-order-1"
+                        alt="Crafted Studio"
+                        width={900}
+                        height={1124}
                         priority
                       />
                     </div>

@@ -14,11 +14,11 @@ export default function Footer({ onepage = false }: { onepage?: boolean }) {
         <div className="row g-4 align-items-center text-center">
           <div className="col-lg-12">
             <Image
-              src="/images/logo-white.webp"
+              src="/images/logo.webp"
               className="logo-footer"
-              alt="Barberon Logo"
-              width={442}
-              height={94}
+              alt="Crafted Studio"
+              width={640}
+              height={213}
             />
             <br />
 

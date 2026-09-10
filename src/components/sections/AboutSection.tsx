@@ -56,11 +56,11 @@ export default function AboutSection({ className = "pb-0 relative" }: { classNam
                 />
                 <div className="abs abs-centered ms-4">
                   <Image
-                    src="/images/logo-icon.webp"
+                    src="/images/logo-mark.webp"
                     className="w-100px"
                     alt=""
-                    width={173}
-                    height={240}
+                    width={240}
+                    height={285}
                   />
                 </div>
               </Reveal>
