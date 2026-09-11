@@ -4,7 +4,7 @@ import HomeBody from "@/components/sections/HomeBody";
 
 export const metadata: Metadata = {
   title: "One Page",
-  description: "The whole of Barberon on a single scrolling page.",
+  description: "The whole of Crafted Studio on a single scrolling page.",
 };
 
 /** Port of onepage-index.html. */

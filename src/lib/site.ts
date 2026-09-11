@@ -3,28 +3,28 @@
 // change — no component hardcodes content.
 
 export const site = {
-  name: "Barberon",
+  name: "Crafted Studio",
   tagline: "Barbershop & Hair Salon",
   description:
     "We craft precision haircuts, signature beard grooming, and refined styling that elevate your confidence through expert craftsmanship and timeless barbering tradition.",
-  phone: "+1 (555) 123-4567",
-  phoneHref: "tel:+15551234567",
+  email: "crafted.studio@outlook.com",
   address: {
-    line1: "123 Barber Street",
-    line2: "New York, NY 10001",
+    line1: "2003-1480 Dakota Street",
+    line2: "Winnipeg, Manitoba R2N 3Y7",
   },
   founder: {
     name: "Samuel Barberon",
     role: "Founder & Master Barber",
   },
-  copyright: "Copyright © 2026 Barberon by Designesia. All Rights Reserved.",
+  copyright: "Copyright © 2026 Crafted Studio. All Rights Reserved.",
 } as const;
 
 export const social = [
-  { label: "Facebook", href: "#", icon: "fa-brands fa-facebook-f" },
-  { label: "Instagram", href: "#", icon: "fa-brands fa-instagram" },
-  { label: "Twitter", href: "#", icon: "fa-brands fa-twitter" },
-  { label: "YouTube", href: "#", icon: "fa-brands fa-youtube" },
+  {
+    label: "Instagram",
+    href: "https://www.instagram.com/craftedstudio_1/",
+    icon: "fa-brands fa-instagram",
+  },
 ] as const;
 
 /** Socials shown on each team card — a shorter set than the footer's. */
@@ -53,66 +53,113 @@ export const footerNav = [
   { label: "Booking", section: "#section-booking" },
 ] as const;
 
-export const services = [
+export type MenuItem = {
+  name: string;
+  /** Display price, e.g. "$45", "From $45", "Free", "By consultation". */
+  price: string;
+  /** Approximate appointment length; omitted where the shop hasn't set one. */
+  duration?: string;
+};
+
+export type MenuCategory = { title: string; items: MenuItem[] };
+
+/**
+ * The full price list shown on /services, and the source of the booking form's
+ * service picker. "From" marks the shop's "starting at" prices; colour services
+ * without a listed price are quoted at the (free) consultation.
+ */
+export const serviceMenu: MenuCategory[] = [
   {
-    number: "01",
-    name: "Classic Haircut",
-    price: "$30",
-    blurb:
-      "Precision haircut tailored to your face shape and style, finished with clean detailing for a polished look.",
-    image: "/images/services/1.webp",
+    title: "Men's",
+    items: [
+      { name: "Classic Haircut", price: "$45", duration: "45 min" },
+      { name: "Fade Haircut", price: "$47", duration: "45 min" },
+      { name: "Classic Haircut & Beard", price: "$55", duration: "1 hr" },
+      { name: "Fade Haircut & Beard", price: "$58", duration: "1 hr" },
+      { name: "Buzz & Beard", price: "$47", duration: "1 hr" },
+      { name: "Buzz Haircut", price: "$28", duration: "30 min" },
+      { name: "Youth Classic (0–13)", price: "$35", duration: "45 min" },
+      { name: "Youth Fade (0–13)", price: "$38", duration: "45 min" },
+      { name: "Head Shave", price: "$50", duration: "45 min" },
+      { name: "Beard Shave", price: "$45", duration: "45 min" },
+      { name: "Head Shave & Beard", price: "$60", duration: "1 hr" },
+      { name: "Head Shave & Beard Shave", price: "$65", duration: "1 hr 15 min" },
+      { name: "Beard", price: "$25", duration: "30 min" },
+    ],
   },
   {
-    number: "02",
-    name: "Beard Trim",
-    price: "$20",
-    blurb:
-      "Expert beard shaping and trimming to enhance your facial features with a sharp, refined finish.",
-    image: "/images/services/2.webp",
+    title: "Women's",
+    items: [
+      { name: "Haircut, Wash & Style", price: "From $45", duration: "1 hr" },
+      { name: "Bang Trim", price: "From $15", duration: "15 min" },
+    ],
   },
   {
-    number: "03",
-    name: "Skin Fade",
-    price: "$35",
-    blurb:
-      "Clean skin fade blended with precision techniques for a modern, sharp, and long-lasting appearance.",
-    image: "/images/services/3.webp",
+    title: "Treatments",
+    items: [
+      { name: "Keratin / Protein", price: "From $200", duration: "2 hr 30 min" },
+      { name: "Olaplex Treatment", price: "From $55" },
+      { name: "Permanent Straightening", price: "From $200" },
+      { name: "Women's Perm", price: "From $120", duration: "2 hr" },
+      { name: "Men's Perm", price: "$120", duration: "2 hr" },
+      { name: "Men's Perm & Haircut", price: "$160", duration: "3 hr" },
+    ],
   },
   {
-    number: "04",
-    name: "Hot Towel Shave",
-    price: "$25",
-    blurb:
-      "Traditional hot towel shave with premium products for an incredibly smooth, refreshing, and relaxing finish.",
-    image: "/images/services/4.webp",
+    title: "Colour",
+    items: [
+      { name: "Colour Consultation", price: "Free", duration: "15 min" },
+      { name: "Root Touch-Up", price: "From $80", duration: "1 hr 30 min" },
+      { name: "Full Head Colour", price: "By consultation", duration: "1 hr 30 min" },
+      { name: "Partial Highlights", price: "By consultation", duration: "3 hr" },
+      { name: "Colour Correction", price: "By consultation", duration: "3 hr" },
+      { name: "Full Highlights", price: "By consultation", duration: "3 hr" },
+      { name: "Balayage", price: "By consultation", duration: "3 hr" },
+      { name: "Men's Hair Colour", price: "From $70", duration: "1 hr" },
+    ],
   },
+];
+
+/** Every bookable service name, in menu order — the booking form's options. */
+export const bookableServices = serviceMenu.flatMap((category) =>
+  category.items.map((item) => item.name),
+);
+
+function menuItem(name: string): MenuItem {
+  for (const category of serviceMenu) {
+    const item = category.items.find((i) => i.name === name);
+    if (item) return item;
+  }
+  // Fails the build rather than shipping a featured card with no price.
+  throw new Error(`featuredServices: "${name}" is not in serviceMenu`);
+}
+
+/**
+ * The shop's priority services, shown as image cards on the homepage and at
+ * the top of /services. Price and duration come from `serviceMenu`, so a price
+ * change there updates the card too.
+ */
+export const featuredServices = [
   {
-    number: "05",
-    name: "Hair & Beard Combo",
-    price: "$45",
-    blurb:
-      "Complete grooming package combining a precision haircut and expert beard styling for a flawless look.",
+    name: "Classic Haircut & Beard",
+    blurb: "A classic haircut finished with a beard trim and shape-up, all in one appointment.",
     image: "/images/services/5.webp",
   },
   {
-    number: "06",
-    name: "Kids Haircut",
-    price: "$25",
-    blurb:
-      "Friendly haircut experience designed to keep young gentlemen comfortable while looking their very best.",
-    image: "/images/services/6.webp",
+    name: "Fade Haircut",
+    blurb: "A fade blended to the length you want, finished with clean, sharp detailing.",
+    image: "/images/services/3.webp",
   },
-] as const;
-
-/** Options in the booking form's service picker (the template's own list). */
-export const bookableServices = [
-  "Classic Haircut",
-  "Skin Fade",
-  "Beard Trim",
-  "Hair Wash & Styling",
-  "Hot Towel Shave",
-  "Kids Haircut",
-] as const;
+  {
+    name: "Haircut, Wash & Style",
+    blurb: "A women's haircut with a wash and styling to finish.",
+    image: "/images/services/1.webp",
+  },
+].map((service, i) => ({
+  ...menuItem(service.name),
+  ...service,
+  number: String(i + 1).padStart(2, "0"),
+}));
 
 export const team = [
   {
@@ -198,13 +245,13 @@ export const gallery = [
 ] as const;
 
 export const hours = [
-  { day: "Monday", value: "09:00 AM – 08:00 PM", closed: false },
-  { day: "Tuesday", value: "09:00 AM – 08:00 PM", closed: false },
-  { day: "Wednesday", value: "09:00 AM – 08:00 PM", closed: false },
-  { day: "Thursday", value: "09:00 AM – 08:00 PM", closed: false },
-  { day: "Friday", value: "09:00 AM – 09:00 PM", closed: false },
-  { day: "Saturday", value: "08:00 AM – 09:00 PM", closed: false },
-  { day: "Sunday", value: "Closed", closed: true },
+  { day: "Monday", value: "10:00 AM – 08:00 PM", closed: false },
+  { day: "Tuesday", value: "10:00 AM – 08:00 PM", closed: false },
+  { day: "Wednesday", value: "10:00 AM – 08:00 PM", closed: false },
+  { day: "Thursday", value: "10:00 AM – 08:00 PM", closed: false },
+  { day: "Friday", value: "10:00 AM – 08:00 PM", closed: false },
+  { day: "Saturday", value: "10:00 AM – 06:00 PM", closed: false },
+  { day: "Sunday", value: "10:00 AM – 06:00 PM", closed: false },
 ] as const;
 
 export const marqueeItems = [
@@ -244,12 +291,12 @@ export const history = [
   },
 ] as const;
 
-/** Headlines the default hero cycles through. */
+/** Headlines the default hero cycles through — a sample of the shop's services. */
 export const heroHeadlines = [
   "Classic Haircuts",
-  "Beard Trim",
-  "Skin Fade",
-  "Kids Haircuts",
+  "Fade Haircuts",
+  "Colour & Balayage",
+  "Keratin Treatments",
 ] as const;
 
 /**
@@ -281,7 +328,7 @@ export const heroStatic = {
 /** Background images behind the default homepage hero. */
 export const heroBackgrounds = ["/images/slider/1.webp", "/images/slider/2.webp"] as const;
 
-export type Service = (typeof services)[number];
+export type FeaturedService = (typeof featuredServices)[number];
 export type TeamMember = (typeof team)[number];
 export type Testimonial = (typeof testimonials)[number];
 export type GalleryImage = (typeof gallery)[number];

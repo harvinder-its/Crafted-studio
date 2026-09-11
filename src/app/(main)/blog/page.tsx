@@ -6,7 +6,7 @@ import { posts } from "@/lib/blog";
 
 export const metadata: Metadata = {
   title: "Blog",
-  description: "Hair care, grooming habits and barber tips from the Barberon chair.",
+  description: "Hair care, grooming habits and barber tips from the Crafted Studio chair.",
   alternates: { canonical: "/blog" },
 };
 

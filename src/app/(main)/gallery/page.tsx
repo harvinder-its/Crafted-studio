@@ -5,7 +5,7 @@ import GallerySection from "@/components/sections/GallerySection";
 export const metadata: Metadata = {
   title: "Gallery",
   description:
-    "Recent work from the Barberon chair — precision haircuts, signature beard grooming and timeless styles.",
+    "Recent work from the Crafted Studio chair — precision haircuts, signature beard grooming and timeless styles.",
   alternates: { canonical: "/gallery" },
 };
 

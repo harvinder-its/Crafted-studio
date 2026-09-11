@@ -4,7 +4,7 @@ import HomeBody from "@/components/sections/HomeBody";
 
 export const metadata: Metadata = {
   title: "One Page – Video Background",
-  description: "Single-page Barberon layout with a looping video hero.",
+  description: "Single-page Crafted Studio layout with a looping video hero.",
 };
 
 /** Port of onepage-dark-video-background.html. */

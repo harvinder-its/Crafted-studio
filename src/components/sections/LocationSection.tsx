@@ -38,8 +38,8 @@ export default function LocationSection() {
                   </address>
 
                   <p className="mb-0">
-                    <a href={site.phoneHref} className="text-light text-decoration-none">
-                      <span className="id-color">{site.phone}</span>
+                    <a href={`mailto:${site.email}`} className="text-light text-decoration-none">
+                      <span className="id-color">{site.email}</span>
                     </a>
                   </p>
                 </div>

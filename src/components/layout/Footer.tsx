@@ -31,8 +31,8 @@ export default function Footer({ onepage = false }: { onepage?: boolean }) {
                 </small>
                 <br />
                 <small className="mb-0">
-                  <a href={site.phoneHref} className="text-light text-decoration-none">
-                    <span className="id-color">{site.phone}</span>
+                  <a href={`mailto:${site.email}`} className="text-light text-decoration-none">
+                    <span className="id-color">{site.email}</span>
                   </a>
                 </small>
               </address>
@@ -56,7 +56,13 @@ export default function Footer({ onepage = false }: { onepage?: boolean }) {
           <div className="col-lg-12">
             <div className="social-icons">
               {social.map((item) => (
-                <a key={item.label} href={item.href} aria-label={item.label}>
+                <a
+                  key={item.label}
+                  href={item.href}
+                  aria-label={item.label}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
                   <i className={item.icon} aria-hidden="true" />
                 </a>
               ))}

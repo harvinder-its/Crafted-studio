@@ -5,7 +5,7 @@ import BookingSection from "@/components/sections/BookingSection";
 export const metadata: Metadata = {
   title: "Booking Now",
   description:
-    "Reserve your chair at Barberon. Pick a service, date and time — we will confirm shortly.",
+    "Reserve your chair at Crafted Studio. Pick a service, date and time — we will confirm shortly.",
   alternates: { canonical: "/booking" },
 };
 

@@ -14,7 +14,7 @@ import TextCircle from "@/components/ui/TextCircle";
 /** Shared by the homepage variants and /about — identical markup in both. */
 export default function AboutSection({ className = "pb-0 relative" }: { className?: string }) {
   return (
-    <section id="section-about" className={className} aria-label="About Barberon">
+    <section id="section-about" className={className} aria-label="About us">
       <div className="container">
         <div className="row g-4 gx-5 justify-content-between">
           <Reveal className="col-lg-6" duration={1.2}>

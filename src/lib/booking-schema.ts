@@ -1,6 +1,8 @@
 import { z } from "zod";
 import { bookableServices } from "./site";
 
+const validServices = new Set(bookableServices);
+
 /** Shared by the client form and the API route, so validation can't drift. */
 export const bookingSchema = z.object({
   name: z.string().trim().min(2, "Please enter your name").max(100),
@@ -11,7 +13,9 @@ export const bookingSchema = z.object({
     .min(7, "Please enter a phone number")
     .max(30)
     .regex(/^[\d\s()+.-]+$/, "Please enter a valid phone number"),
-  service: z.enum(bookableServices, { error: "Please choose a service" }),
+  service: z
+    .string({ error: "Please choose a service" })
+    .refine((value) => validServices.has(value), "Please choose a service"),
   date: z
     .string()
     .regex(/^\d{4}-\d{2}-\d{2}$/, "Please choose a date")

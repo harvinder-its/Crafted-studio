@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { bookingSchema, type BookingInput } from "@/lib/booking-schema";
-import { bookableServices } from "@/lib/site";
+import { serviceMenu } from "@/lib/site";
 import Reveal from "@/components/ui/Reveal";
 
 /**
@@ -129,10 +129,14 @@ export default function BookingForm() {
               <option value="" disabled>
                 Select Service
               </option>
-              {bookableServices.map((name) => (
-                <option key={name} value={name}>
-                  {name}
-                </option>
+              {serviceMenu.map((category) => (
+                <optgroup key={category.title} label={category.title}>
+                  {category.items.map((item) => (
+                    <option key={item.name} value={item.name}>
+                      {item.name}
+                    </option>
+                  ))}
+                </optgroup>
               ))}
             </select>
             {errors.service && <span className="error d-block">{errors.service.message}</span>}

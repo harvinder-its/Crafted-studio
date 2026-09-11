@@ -1,10 +1,14 @@
+import Link from "next/link";
 import ServiceCard from "@/components/cards/ServiceCard";
+import Reveal from "@/components/ui/Reveal";
 import SectionHeading from "./SectionHeading";
-import { services } from "@/lib/site";
+import { featuredServices } from "@/lib/site";
 
 /**
- * The homepage passes `withHeading`; /services drops it, because the page
- * subheader already carries the title — exactly as the template does.
+ * The shop's featured services as image cards. The homepage passes
+ * `withHeading`, which also adds a link through to the full menu; /services
+ * drops both, because its subheader carries the title and the price list
+ * follows directly below.
  */
 export default function ServicesSection({ withHeading = false }: { withHeading?: boolean }) {
   return (
@@ -17,7 +21,7 @@ export default function ServicesSection({ withHeading = false }: { withHeading?:
                 <SectionHeading
                   eyebrow="Discover"
                   title="Our Services"
-                  body="Experience premium barbering with precision haircuts, beard grooming, and classic shaves, crafted to keep you looking sharp every visit."
+                  body="From men's cuts and fades to women's styling, treatments and colour — here are our most popular services."
                 />
               </div>
             </div>
@@ -26,10 +30,21 @@ export default function ServicesSection({ withHeading = false }: { withHeading?:
         ) : null}
 
         <div className="row g-4">
-          {services.map((service, i) => (
-            <ServiceCard key={service.number} service={service} delay={i * 0.15} />
+          {featuredServices.map((service, i) => (
+            <ServiceCard key={service.name} service={service} delay={i * 0.15} />
           ))}
         </div>
+
+        {withHeading ? (
+          <>
+            <div className="spacer-single" />
+            <Reveal className="text-center" delay={0.3}>
+              <Link className="btn-main fx-slide" href="/services">
+                <span>View All Services</span>
+              </Link>
+            </Reveal>
+          </>
+        ) : null}
       </div>
     </section>
   );

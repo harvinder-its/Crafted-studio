@@ -66,7 +66,7 @@ export async function POST(request: Request) {
   if (!apiKey || !to || !from) {
     console.error("Booking email is not configured (RESEND_API_KEY / BOOKING_TO_EMAIL / BOOKING_FROM_EMAIL).");
     return NextResponse.json(
-      { ok: false, error: "Booking is temporarily unavailable. Please call us instead." },
+      { ok: false, error: `Booking is temporarily unavailable. Please email us at ${site.email} instead.` },
       { status: 503 },
     );
   }
@@ -108,14 +108,14 @@ export async function POST(request: Request) {
     if (error) {
       console.error("Resend error:", error);
       return NextResponse.json(
-        { ok: false, error: "We couldn't send your request. Please call us instead." },
+        { ok: false, error: `We couldn't send your request. Please email us at ${site.email} instead.` },
         { status: 502 },
       );
     }
   } catch (err) {
     console.error("Booking send failed:", err);
     return NextResponse.json(
-      { ok: false, error: "We couldn't send your request. Please call us instead." },
+      { ok: false, error: `We couldn't send your request. Please email us at ${site.email} instead.` },
       { status: 502 },
     );
   }
