@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth";
 import { createStaff } from "./actions";
+import AdminForm from "@/components/admin/AdminForm";
 import styles from "../../admin.module.css";
 
 export const metadata = { title: "Staff" };
@@ -71,7 +72,7 @@ export default async function StaffPage() {
         {user.role === "OWNER" ? (
           <section className={styles.panel}>
             <h2 className={styles.panelTitle}>Add a barber</h2>
-            <form action={createStaff} className={styles.inlineForm}>
+            <AdminForm action={createStaff} className={styles.inlineForm} submitLabel="Add" pendingLabel="Adding…">
               <label className={styles.field}>
                 <span className={styles.label}>Name</span>
                 <input className={styles.input} name="name" required maxLength={80} />
@@ -84,10 +85,7 @@ export default async function StaffPage() {
                 <span className={styles.label}>Calendar colour</span>
                 <input className={styles.colorInput} type="color" name="color" defaultValue="#C8A46A" />
               </label>
-              <button className={styles.button} type="submit">
-                Add
-              </button>
-            </form>
+            </AdminForm>
           </section>
         ) : null}
       </div>

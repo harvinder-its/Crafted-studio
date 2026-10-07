@@ -103,10 +103,13 @@ export async function updateCoupon(_prev: ActionResult, formData: FormData): Pro
   return ok(`${code} saved`);
 }
 
-export async function deleteCoupon(formData: FormData) {
+export async function deleteCoupon(
+  _prev: ActionResult,
+  formData: FormData,
+): Promise<ActionResult> {
   await requireOwner();
   const id = String(formData.get("id") ?? "");
-  if (!id) return;
+  if (!id) return fail("Coupon not found");
 
   const used = await db.appointment.count({ where: { couponId: id } });
 

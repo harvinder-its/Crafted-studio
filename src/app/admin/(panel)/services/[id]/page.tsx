@@ -3,6 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { db } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth";
 import { deleteService, setServiceStaff, updateService } from "../actions";
+import AdminForm from "@/components/admin/AdminForm";
 import styles from "../../../admin.module.css";
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
@@ -43,7 +44,7 @@ export default async function ServicePage({ params }: { params: Promise<{ id: st
           {/* ------------------------------------------------ details */}
           <section className={styles.panel}>
             <h2 className={styles.panelTitle}>Details</h2>
-            <form action={updateService}>
+            <AdminForm action={updateService} submitLabel="Save service">
               <input type="hidden" name="id" value={service.id} />
 
               <label className={styles.field}>
@@ -172,10 +173,7 @@ export default async function ServicePage({ params }: { params: Promise<{ id: st
                 </label>
               </div>
 
-              <button className={styles.button} type="submit">
-                Save service
-              </button>
-            </form>
+            </AdminForm>
           </section>
 
           {/* ------------------------------------------------ who does it */}
@@ -186,70 +184,66 @@ export default async function ServicePage({ params }: { params: Promise<{ id: st
               charges or takes longer than the standard.
             </p>
 
-            <form action={setServiceStaff}>
-              <input type="hidden" name="id" value={service.id} />
-              <table className={styles.table}>
-                <thead>
-                  <tr>
-                    <th>Barber</th>
-                    <th>Their price ($)</th>
-                    <th>Their minutes</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {staff.map((member) => {
-                    const row = assigned.get(member.id);
-                    return (
-                      <tr key={member.id}>
-                        <td>
-                          <label className={styles.checkbox}>
+            {staff.length === 0 ? (
+              <p className={styles.subtitle}>No active barbers yet.</p>
+            ) : (
+              <AdminForm action={setServiceStaff} submitLabel="Save barbers">
+                <input type="hidden" name="id" value={service.id} />
+                <table className={styles.table}>
+                  <thead>
+                    <tr>
+                      <th>Barber</th>
+                      <th>Their price ($)</th>
+                      <th>Their minutes</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {staff.map((member) => {
+                      const row = assigned.get(member.id);
+                      return (
+                        <tr key={member.id}>
+                          <td>
+                            <label className={styles.checkbox}>
+                              <input
+                                type="checkbox"
+                                name={`staff-${member.id}`}
+                                defaultChecked={Boolean(row)}
+                              />
+                              <span
+                                className={styles.swatch}
+                                style={{ background: member.color }}
+                                aria-hidden="true"
+                              />
+                              <span>{member.name}</span>
+                            </label>
+                          </td>
+                          <td>
                             <input
-                              type="checkbox"
-                              name={`staff-${member.id}`}
-                              defaultChecked={Boolean(row)}
+                              className={styles.inputSmall}
+                              name={`price-${member.id}`}
+                              inputMode="decimal"
+                              placeholder={dollars(service.priceCents)}
+                              defaultValue={row?.priceCents != null ? dollars(row.priceCents) : ""}
                             />
-                            <span
-                              className={styles.swatch}
-                              style={{ background: member.color }}
-                              aria-hidden="true"
+                          </td>
+                          <td>
+                            <input
+                              className={styles.inputSmall}
+                              type="number"
+                              name={`duration-${member.id}`}
+                              min={5}
+                              max={600}
+                              placeholder={String(service.durationMinutes)}
+                              defaultValue={row?.durationMinutes ?? ""}
                             />
-                            <span>{member.name}</span>
-                          </label>
-                        </td>
-                        <td>
-                          <input
-                            className={styles.inputSmall}
-                            name={`price-${member.id}`}
-                            inputMode="decimal"
-                            placeholder={dollars(service.priceCents)}
-                            defaultValue={row?.priceCents != null ? dollars(row.priceCents) : ""}
-                          />
-                        </td>
-                        <td>
-                          <input
-                            className={styles.inputSmall}
-                            type="number"
-                            name={`duration-${member.id}`}
-                            min={5}
-                            max={600}
-                            placeholder={String(service.durationMinutes)}
-                            defaultValue={row?.durationMinutes ?? ""}
-                          />
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-
-              {staff.length === 0 ? (
-                <p className={styles.subtitle}>No active barbers yet.</p>
-              ) : (
-                <button className={styles.button} type="submit">
-                  Save barbers
-                </button>
-              )}
-            </form>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </AdminForm>
+            )}
           </section>
 
           {/* ------------------------------------------------ remove */}
@@ -259,12 +253,15 @@ export default async function ServicePage({ params }: { params: Promise<{ id: st
               A service that has been booked is hidden rather than deleted, so past appointments
               keep their details.
             </p>
-            <form action={deleteService}>
+            <AdminForm
+              action={deleteService}
+              variant="danger"
+              submitLabel={`Remove ${service.name}`}
+              pendingLabel="Removing…"
+              confirm={`Remove ${service.name}?`}
+            >
               <input type="hidden" name="id" value={service.id} />
-              <button className={styles.buttonDanger} type="submit">
-                Remove {service.name}
-              </button>
-            </form>
+            </AdminForm>
           </section>
         </div>
       </div>

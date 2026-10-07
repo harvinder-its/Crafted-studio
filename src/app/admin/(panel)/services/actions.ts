@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
 import { requireOwner } from "@/lib/auth";
 import type { PriceMode } from "@/generated/prisma/client";
+import { fail, ok, type ActionResult } from "@/lib/action-result";
 
 /**
  * The service menu. Owner-only: prices and durations drive what customers are
@@ -44,12 +45,15 @@ async function uniqueSlug(name: string, ignoreId?: string): Promise<string> {
 
 // ---------------------------------------------------------------- services
 
-export async function createService(formData: FormData) {
+export async function createService(
+  _prev: ActionResult,
+  formData: FormData,
+): Promise<ActionResult> {
   await requireOwner();
 
   const name = text(formData, "name", 120);
   const categoryId = text(formData, "categoryId", 40);
-  if (!name || !categoryId) return;
+  if (!name || !categoryId) return fail("Give the service a name and a category");
 
   const last = await db.service.findFirst({
     where: { categoryId },
@@ -71,10 +75,13 @@ export async function createService(formData: FormData) {
   redirect(`/admin/services/${service.id}`);
 }
 
-export async function updateService(formData: FormData) {
+export async function updateService(
+  _prev: ActionResult,
+  formData: FormData,
+): Promise<ActionResult> {
   await requireOwner();
   const id = text(formData, "id", 40);
-  if (!id) return;
+  if (!id) return fail("Service not found");
 
   const name = text(formData, "name", 120);
   const priceMode = text(formData, "priceMode", 20) as PriceMode;
@@ -105,16 +112,21 @@ export async function updateService(formData: FormData) {
 
   revalidatePath("/admin/services");
   revalidatePath(`/admin/services/${id}`);
+  revalidatePath("/", "layout");
+  return ok(`${name || "Service"} saved`);
 }
 
 /**
  * Deleted only when nothing points at it. A service with bookings is
  * deactivated instead — removing it would erase what a past customer paid for.
  */
-export async function deleteService(formData: FormData) {
+export async function deleteService(
+  _prev: ActionResult,
+  formData: FormData,
+): Promise<ActionResult> {
   await requireOwner();
   const id = text(formData, "id", 40);
-  if (!id) return;
+  if (!id) return fail("Service not found");
 
   const booked = await db.appointment.count({ where: { serviceId: id } });
 
@@ -129,10 +141,13 @@ export async function deleteService(formData: FormData) {
 }
 
 /** Which barbers offer this service, and their own price/time if it differs. */
-export async function setServiceStaff(formData: FormData) {
+export async function setServiceStaff(
+  _prev: ActionResult,
+  formData: FormData,
+): Promise<ActionResult> {
   await requireOwner();
   const serviceId = text(formData, "id", 40);
-  if (!serviceId) return;
+  if (!serviceId) return fail("Service not found");
 
   const staff = await db.staff.findMany({ select: { id: true } });
   const chosen = staff.filter((member) => formData.get(`staff-${member.id}`) === "on");
@@ -158,14 +173,23 @@ export async function setServiceStaff(formData: FormData) {
   }
 
   revalidatePath(`/admin/services/${serviceId}`);
+  revalidatePath("/", "layout");
+  return ok(
+    chosen.length
+      ? `${chosen.length} barber${chosen.length === 1 ? "" : "s"} offer this service`
+      : "No barbers offer this service",
+  );
 }
 
 // ---------------------------------------------------------------- categories
 
-export async function createCategory(formData: FormData) {
+export async function createCategory(
+  _prev: ActionResult,
+  formData: FormData,
+): Promise<ActionResult> {
   await requireOwner();
   const name = text(formData, "name", 80);
-  if (!name) return;
+  if (!name) return fail("Give the category a name");
 
   const base = slugify(name) || "category";
   const taken = await db.serviceCategory.findUnique({ where: { slug: base } });
@@ -181,12 +205,17 @@ export async function createCategory(formData: FormData) {
 
   revalidatePath("/admin/services/categories");
   revalidatePath("/admin/services");
+  revalidatePath("/", "layout");
+  return ok(`${name} added`);
 }
 
-export async function updateCategory(formData: FormData) {
+export async function updateCategory(
+  _prev: ActionResult,
+  formData: FormData,
+): Promise<ActionResult> {
   await requireOwner();
   const id = text(formData, "id", 40);
-  if (!id) return;
+  if (!id) return fail("Category not found");
 
   await db.serviceCategory.update({
     where: { id },
@@ -199,13 +228,18 @@ export async function updateCategory(formData: FormData) {
 
   revalidatePath("/admin/services/categories");
   revalidatePath("/admin/services");
+  revalidatePath("/", "layout");
+  return ok("Category saved");
 }
 
 /** An empty category is deleted; one with services is hidden instead. */
-export async function deleteCategory(formData: FormData) {
+export async function deleteCategory(
+  _prev: ActionResult,
+  formData: FormData,
+): Promise<ActionResult> {
   await requireOwner();
   const id = text(formData, "id", 40);
-  if (!id) return;
+  if (!id) return fail("Category not found");
 
   const services = await db.service.count({ where: { categoryId: id } });
 
@@ -217,4 +251,6 @@ export async function deleteCategory(formData: FormData) {
 
   revalidatePath("/admin/services/categories");
   revalidatePath("/admin/services");
+  revalidatePath("/", "layout");
+  return ok(services === 0 ? "Category deleted" : "Category hidden — it still has services");
 }

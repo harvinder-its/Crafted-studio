@@ -4,6 +4,7 @@ import { randomBytes } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
+import { fail, ok, type ActionResult } from "@/lib/action-result";
 import { allowedStaffIds, requireUser } from "@/lib/auth";
 import { appointmentLength, isSlotFree } from "@/lib/availability";
 import { getSettings } from "@/lib/settings";
@@ -72,11 +73,22 @@ function backToCalendar(params: URLSearchParams, error?: string) {
 
 // ---------------------------------------------------------------- status
 
-export async function setAppointmentStatus(formData: FormData) {
+/** What the toast says once a status has been set. */
+const STATUS_SAVED: Record<AllowedStatus, string> = {
+  CONFIRMED: "Appointment confirmed",
+  COMPLETED: "Marked as completed",
+  NO_SHOW: "Marked as a no-show",
+  CANCELLED: "Appointment cancelled",
+};
+
+export async function setAppointmentStatus(
+  _prev: ActionResult,
+  formData: FormData,
+): Promise<ActionResult> {
   const id = text(formData, "id", 40);
   const status = text(formData, "status", 20) as AllowedStatus;
-  if (!id || !ALLOWED.includes(status)) return;
-  if (!(await assertCanEdit(id))) return;
+  if (!id || !ALLOWED.includes(status)) return fail("That status is not allowed");
+  if (!(await assertCanEdit(id))) return fail("You cannot change this appointment");
 
   await db.appointment.update({
     where: { id },
@@ -84,11 +96,15 @@ export async function setAppointmentStatus(formData: FormData) {
   });
 
   revalidatePath("/admin/bookings");
+  return ok(STATUS_SAVED[status]);
 }
 
-export async function saveStaffNote(formData: FormData) {
+export async function saveStaffNote(
+  _prev: ActionResult,
+  formData: FormData,
+): Promise<ActionResult> {
   const id = text(formData, "id", 40);
-  if (!id || !(await assertCanEdit(id))) return;
+  if (!id || !(await assertCanEdit(id))) return fail("You cannot change this appointment");
 
   await db.appointment.update({
     where: { id },
@@ -96,6 +112,7 @@ export async function saveStaffNote(formData: FormData) {
   });
 
   revalidatePath("/admin/bookings");
+  return ok("Note saved");
 }
 
 // ---------------------------------------------------------------- create

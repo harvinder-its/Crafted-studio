@@ -1,6 +1,7 @@
 import { db } from "@/lib/db";
 import { minutesToLabel, minutesToTimeInput } from "@/lib/time";
 import { addSalonSpecialDate, deleteSalonSpecialDate, updateBusinessHours } from "../actions";
+import AdminForm from "@/components/admin/AdminForm";
 import styles from "../../../admin.module.css";
 
 export const metadata = { title: "Business hours" };
@@ -24,7 +25,7 @@ export default async function BusinessHoursPage() {
           booked while the salon is shut.
         </p>
 
-        <form action={updateBusinessHours}>
+        <AdminForm action={updateBusinessHours} submitLabel="Save hours">
           <table className={styles.table}>
             <tbody>
               {DAYS.map((label, day) => {
@@ -63,10 +64,7 @@ export default async function BusinessHoursPage() {
             </tbody>
           </table>
 
-          <button className={styles.button} type="submit">
-            Save hours
-          </button>
-        </form>
+        </AdminForm>
       </section>
 
       <section className={styles.panel}>
@@ -87,12 +85,9 @@ export default async function BusinessHoursPage() {
                     : `${minutesToLabel(item.openMinute ?? 0)} – ${minutesToLabel(item.closeMinute ?? 0)}`}
                   {item.note ? ` · ${item.note}` : ""}
                 </span>
-                <form action={deleteSalonSpecialDate}>
+                <AdminForm action={deleteSalonSpecialDate} variant="link" submitLabel="Remove">
                   <input type="hidden" name="specialDateId" value={item.id} />
-                  <button className={styles.linkButton} type="submit">
-                    Remove
-                  </button>
-                </form>
+                </AdminForm>
               </li>
             ))}
           </ul>
@@ -100,7 +95,7 @@ export default async function BusinessHoursPage() {
           <p className={styles.subtitle}>No holidays set.</p>
         )}
 
-        <form action={addSalonSpecialDate} className={styles.inlineForm}>
+        <AdminForm action={addSalonSpecialDate} className={styles.inlineForm} variant="ghost" submitLabel="Add" pendingLabel="Adding…">
           <label className={styles.field}>
             <span className={styles.label}>Date</span>
             <input className={styles.input} type="date" name="date" required />
@@ -124,10 +119,7 @@ export default async function BusinessHoursPage() {
             <span className={styles.label}>Note</span>
             <input className={styles.input} name="note" placeholder="Christmas Day" />
           </label>
-          <button className={styles.buttonGhost} type="submit">
-            Add
-          </button>
-        </form>
+        </AdminForm>
       </section>
     </>
   );

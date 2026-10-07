@@ -28,7 +28,10 @@ async function save(data: SettingsData) {
   revalidatePath("/", "layout");
 }
 
-export async function updateGeneral(formData: FormData) {
+export async function updateGeneral(
+  _prev: ActionResult,
+  formData: FormData,
+): Promise<ActionResult> {
   await requireOwner();
   await save({
     salonName: text(formData, "salonName", 120),
@@ -39,9 +42,13 @@ export async function updateGeneral(formData: FormData) {
     notifyEmail: text(formData, "notifyEmail", 200),
     timezone: text(formData, "timezone", 60) || "America/Winnipeg",
   });
+  return ok("Salon details saved");
 }
 
-export async function updateBooking(formData: FormData) {
+export async function updateBooking(
+  _prev: ActionResult,
+  formData: FormData,
+): Promise<ActionResult> {
   await requireOwner();
   await save({
     slotIntervalMinutes: intField(formData.get("slotIntervalMinutes"), 15, 5, 120),
@@ -52,6 +59,7 @@ export async function updateBooking(formData: FormData) {
     allowSameDayBooking: formData.get("allowSameDayBooking") === "on",
     cancellationPolicy: text(formData, "cancellationPolicy", 1000),
   });
+  return ok("Booking rules saved");
 }
 
 export async function updatePayments(
@@ -79,7 +87,10 @@ export async function updatePayments(
   return ok(wantsOnline ? "Online card payments switched on" : "Set to pay in salon");
 }
 
-export async function updateNotifications(formData: FormData) {
+export async function updateNotifications(
+  _prev: ActionResult,
+  formData: FormData,
+): Promise<ActionResult> {
   await requireOwner();
   await save({
     notifyCustomerConfirmation: formData.get("notifyCustomerConfirmation") === "on",
@@ -89,17 +100,24 @@ export async function updateNotifications(formData: FormData) {
     notifyAdminCancellation: formData.get("notifyAdminCancellation") === "on",
     reminderHoursBefore: intField(formData.get("reminderHoursBefore"), 24, 1, 168),
   });
+  return ok("Notification settings saved");
 }
 
 // ---------------------------------------------------------------- hours
 
-export async function updateBusinessHours(formData: FormData) {
+export async function updateBusinessHours(
+  _prev: ActionResult,
+  formData: FormData,
+): Promise<ActionResult> {
   await requireOwner();
+
+  let openDays = 0;
 
   for (let day = 0; day < 7; day += 1) {
     const open = labelToMinutes(String(formData.get(`open-${day}`) ?? ""));
     const close = labelToMinutes(String(formData.get(`close-${day}`) ?? ""));
     const closed = formData.get(`open-day-${day}`) !== "on" || open === null || close === null || close <= open;
+    if (!closed) openDays += 1;
 
     await db.businessHours.upsert({
       where: { dayOfWeek: day },
@@ -110,14 +128,21 @@ export async function updateBusinessHours(formData: FormData) {
 
   revalidatePath("/admin/settings/hours");
   revalidatePath("/", "layout");
+
+  return openDays
+    ? ok(`Opening hours saved — open ${openDays} day${openDays === 1 ? "" : "s"} a week`)
+    : fail("Saved, but the salon is now closed every day");
 }
 
 /** A holiday or one-off change of hours for the whole salon. */
-export async function addSalonSpecialDate(formData: FormData) {
+export async function addSalonSpecialDate(
+  _prev: ActionResult,
+  formData: FormData,
+): Promise<ActionResult> {
   await requireOwner();
 
   const dateKey = text(formData, "date", 10);
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(dateKey)) return;
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(dateKey)) return fail("Pick a date first");
 
   const custom = formData.get("mode") === "custom";
   const open = labelToMinutes(String(formData.get("open") ?? ""));
@@ -145,13 +170,21 @@ export async function addSalonSpecialDate(formData: FormData) {
   }
 
   revalidatePath("/admin/settings/hours");
+  revalidatePath("/", "layout");
+
+  return ok(useCustom ? `${dateKey} set to different hours` : `${dateKey} set to closed`);
 }
 
-export async function deleteSalonSpecialDate(formData: FormData) {
+export async function deleteSalonSpecialDate(
+  _prev: ActionResult,
+  formData: FormData,
+): Promise<ActionResult> {
   await requireOwner();
   const id = text(formData, "specialDateId", 40);
-  if (!id) return;
+  if (!id) return fail("Nothing to remove");
 
   await db.specialDate.delete({ where: { id } });
   revalidatePath("/admin/settings/hours");
+  revalidatePath("/", "layout");
+  return ok("Holiday removed");
 }

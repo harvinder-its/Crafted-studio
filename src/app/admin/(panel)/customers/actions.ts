@@ -42,10 +42,13 @@ export async function createCustomer(
   return ok(`${name} added`);
 }
 
-export async function updateCustomer(formData: FormData) {
+export async function updateCustomer(
+  _prev: ActionResult,
+  formData: FormData,
+): Promise<ActionResult> {
   await requireUser();
   const id = text(formData, "id", 40);
-  if (!id) return;
+  if (!id) return fail("Customer not found");
 
   const email = text(formData, "email", 200).toLowerCase();
   const preferredStaffId = text(formData, "preferredStaffId", 40);
@@ -54,9 +57,7 @@ export async function updateCustomer(formData: FormData) {
   // reported rather than silently throwing a database error at the visitor.
   if (email) {
     const clash = await db.customer.findUnique({ where: { email }, select: { id: true } });
-    if (clash && clash.id !== id) {
-      redirect(`/admin/customers/${id}?error=${encodeURIComponent("Another customer already uses that email.")}`);
-    }
+    if (clash && clash.id !== id) return fail("Another customer already uses that email");
   }
 
   await db.customer.update({
@@ -72,21 +73,21 @@ export async function updateCustomer(formData: FormData) {
 
   revalidatePath("/admin/customers");
   revalidatePath(`/admin/customers/${id}`);
+  return ok("Customer saved");
 }
 
 /** Only ever removes someone with no appointments; history is not erasable. */
-export async function deleteCustomer(formData: FormData) {
+export async function deleteCustomer(
+  _prev: ActionResult,
+  formData: FormData,
+): Promise<ActionResult> {
   await requireOwner();
   const id = text(formData, "id", 40);
-  if (!id) return;
+  if (!id) return fail("Customer not found");
 
   const bookings = await db.appointment.count({ where: { customerId: id } });
   if (bookings > 0) {
-    redirect(
-      `/admin/customers/${id}?error=${encodeURIComponent(
-        "This customer has appointments, so the record is kept. Clear their details instead if you need to.",
-      )}`,
-    );
+    return fail("This customer has appointments, so the record is kept");
   }
 
   await db.customer.delete({ where: { id } });

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { setAppointmentStatus, saveStaffNote } from "@/app/admin/(panel)/bookings/actions";
+import AdminForm from "./AdminForm";
 import CouponOnBooking from "./CouponOnBooking";
 import PaymentPanel from "./PaymentPanel";
 import { getAppointment } from "@/lib/bookings";
@@ -122,38 +123,26 @@ export default async function BookingDetail({
         <>
           <div className={styles.detailActions}>
             {appointment.status !== "CONFIRMED" ? (
-              <form action={setAppointmentStatus}>
+              <AdminForm action={setAppointmentStatus} submitLabel="Confirm">
                 <input type="hidden" name="id" value={appointment.id} />
                 <input type="hidden" name="status" value="CONFIRMED" />
-                <button className={styles.button} type="submit">
-                  Confirm
-                </button>
-              </form>
+              </AdminForm>
             ) : null}
 
-            <form action={setAppointmentStatus}>
+            <AdminForm action={setAppointmentStatus} variant="ghost" submitLabel="Completed">
               <input type="hidden" name="id" value={appointment.id} />
               <input type="hidden" name="status" value="COMPLETED" />
-              <button className={styles.buttonGhost} type="submit">
-                Completed
-              </button>
-            </form>
+            </AdminForm>
 
-            <form action={setAppointmentStatus}>
+            <AdminForm action={setAppointmentStatus} variant="ghost" submitLabel="No-show">
               <input type="hidden" name="id" value={appointment.id} />
               <input type="hidden" name="status" value="NO_SHOW" />
-              <button className={styles.buttonGhost} type="submit">
-                No-show
-              </button>
-            </form>
+            </AdminForm>
 
-            <form action={setAppointmentStatus}>
+            <AdminForm action={setAppointmentStatus} variant="ghost" submitLabel="Cancel" confirm="Cancel this appointment?">
               <input type="hidden" name="id" value={appointment.id} />
               <input type="hidden" name="status" value="CANCELLED" />
-              <button className={styles.buttonGhost} type="submit">
-                Cancel
-              </button>
-            </form>
+            </AdminForm>
           </div>
 
           <CouponOnBooking
@@ -177,7 +166,7 @@ export default async function BookingDetail({
             }))}
           />
 
-          <form action={saveStaffNote} className={styles.noteForm}>
+          <AdminForm action={saveStaffNote} className={styles.noteForm} variant="ghost" submitLabel="Save note">
             <input type="hidden" name="id" value={appointment.id} />
             <label className={styles.label} htmlFor="staffNote">
               Private note
@@ -189,10 +178,7 @@ export default async function BookingDetail({
               rows={3}
               defaultValue={appointment.staffNote}
             />
-            <button className={styles.buttonGhost} type="submit">
-              Save note
-            </button>
-          </form>
+          </AdminForm>
         </>
       ) : (
         <p className={styles.subtitle}>This appointment belongs to another barber.</p>

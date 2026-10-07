@@ -2,6 +2,7 @@
 
 import { useActionState } from "react";
 import SaveButton from "@/components/admin/SaveButton";
+import AdminForm from "@/components/admin/AdminForm";
 import Tabs from "@/components/admin/Tabs";
 import { minutesToLabel, minutesToTimeInput } from "@/lib/time";
 import type { ActionResult } from "@/lib/action-result";
@@ -235,12 +236,9 @@ export default function StaffEditor(data: StaffEditorData) {
                 {minutesToLabel(item.endMinute)} · {item.label}
               </span>
               {data.canEditAvailability ? (
-                <form action={deleteStaffBreak}>
+                <AdminForm action={deleteStaffBreak} variant="link" submitLabel="Remove">
                   <input type="hidden" name="breakId" value={item.id} />
-                  <button className={styles.linkButton} type="submit">
-                    Remove
-                  </button>
-                </form>
+                </AdminForm>
               ) : null}
             </li>
           ))}
@@ -296,12 +294,9 @@ export default function StaffEditor(data: StaffEditorData) {
                 {item.note ? ` · ${item.note}` : ""}
               </span>
               {data.canEditAvailability ? (
-                <form action={deleteSpecialDate}>
+                <AdminForm action={deleteSpecialDate} variant="link" submitLabel="Remove">
                   <input type="hidden" name="specialDateId" value={item.id} />
-                  <button className={styles.linkButton} type="submit">
-                    Remove
-                  </button>
-                </form>
+                </AdminForm>
               ) : null}
             </li>
           ))}
@@ -345,12 +340,15 @@ export default function StaffEditor(data: StaffEditorData) {
       <p className={styles.panelNote}>
         A barber with past bookings is hidden rather than deleted, so their history stays intact.
       </p>
-      <form action={deleteStaff}>
+      <AdminForm
+        action={deleteStaff}
+        variant="danger"
+        submitLabel={`Remove ${staff.name}`}
+        pendingLabel="Removing…"
+        confirm={`Remove ${staff.name}?`}
+      >
         <input type="hidden" name="id" value={staff.id} />
-        <button className={styles.buttonDanger} type="submit">
-          Remove {staff.name}
-        </button>
-      </form>
+      </AdminForm>
     </section>
   );
 

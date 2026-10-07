@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth";
 import { createCategory, deleteCategory, updateCategory } from "../actions";
+import AdminForm from "@/components/admin/AdminForm";
 import styles from "../../../admin.module.css";
 
 export const metadata = { title: "Categories" };
@@ -36,7 +37,7 @@ export default async function CategoriesPage() {
           </p>
 
           {categories.map((category) => (
-            <form action={updateCategory} key={category.id} className={styles.inlineForm}>
+            <AdminForm action={updateCategory} key={category.id} className={styles.inlineForm} variant="ghost" submitLabel="Save">
               <input type="hidden" name="id" value={category.id} />
               <label className={styles.field}>
                 <span className={styles.label}>Name</span>
@@ -57,24 +58,18 @@ export default async function CategoriesPage() {
                 <span>Shown</span>
               </label>
               <span className={styles.subtitle}>{category._count.services} services</span>
-              <button className={styles.buttonGhost} type="submit">
-                Save
-              </button>
-            </form>
+            </AdminForm>
           ))}
         </section>
 
         <section className={styles.panel}>
           <h2 className={styles.panelTitle}>Add a category</h2>
-          <form action={createCategory} className={styles.inlineForm}>
+          <AdminForm action={createCategory} className={styles.inlineForm} submitLabel="Add" pendingLabel="Adding…">
             <label className={styles.field}>
               <span className={styles.label}>Name</span>
               <input className={styles.input} name="name" required maxLength={80} placeholder="Barbering" />
             </label>
-            <button className={styles.button} type="submit">
-              Add
-            </button>
-          </form>
+          </AdminForm>
         </section>
 
         <section className={styles.panel}>
@@ -84,12 +79,17 @@ export default async function CategoriesPage() {
             place in the menu.
           </p>
           {categories.map((category) => (
-            <form action={deleteCategory} key={category.id} className={styles.inlineForm}>
+            <AdminForm
+              action={deleteCategory}
+              key={category.id}
+              className={styles.inlineForm}
+              variant="danger"
+              submitLabel={`Remove ${category.name}`}
+              pendingLabel="Removing…"
+              confirm={`Remove the ${category.name} category?`}
+            >
               <input type="hidden" name="id" value={category.id} />
-              <button className={styles.buttonDanger} type="submit">
-                Remove {category.name}
-              </button>
-            </form>
+            </AdminForm>
           ))}
         </section>
       </div>

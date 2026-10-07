@@ -5,6 +5,7 @@ import { getSessionUser } from "@/lib/auth";
 import { priceLabel } from "@/lib/money";
 import { durationLabel } from "@/lib/time";
 import { createService } from "./actions";
+import AdminForm from "@/components/admin/AdminForm";
 import styles from "../../admin.module.css";
 
 export const metadata = { title: "Services" };
@@ -48,7 +49,7 @@ export default async function ServicesPage() {
         {isOwner ? (
           <section className={styles.panel}>
             <h2 className={styles.panelTitle}>Add a service</h2>
-            <form action={createService} className={styles.inlineForm}>
+            <AdminForm action={createService} className={styles.inlineForm} submitLabel="Add" pendingLabel="Adding…">
               <label className={styles.field}>
                 <span className={styles.label}>Name</span>
                 <input className={styles.input} name="name" required maxLength={120} />
@@ -78,10 +79,7 @@ export default async function ServicesPage() {
                   defaultValue={45}
                 />
               </label>
-              <button className={styles.button} type="submit">
-                Add
-              </button>
-            </form>
+            </AdminForm>
           </section>
         ) : null}
 

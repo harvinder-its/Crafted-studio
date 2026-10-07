@@ -15,11 +15,13 @@ export default function SaveButton({
   pending,
   children = "Save",
   variant = "primary",
+  pendingLabel,
 }: {
   state: ActionResult;
   pending: boolean;
   children?: React.ReactNode;
-  variant?: "primary" | "ghost";
+  variant?: "primary" | "ghost" | "link" | "danger";
+  pendingLabel?: string;
 }) {
   const toast = useToast();
 
@@ -29,13 +31,18 @@ export default function SaveButton({
     if (state.error) toast(state.error, "error");
   }, [state.at, state.ok, state.message, state.error, toast]);
 
+  const className =
+    variant === "ghost"
+      ? styles.buttonGhost
+      : variant === "link"
+        ? styles.linkButton
+        : variant === "danger"
+          ? styles.buttonDanger
+          : styles.button;
+
   return (
-    <button
-      className={variant === "ghost" ? styles.buttonGhost : styles.button}
-      type="submit"
-      disabled={pending}
-    >
-      {pending ? "Saving…" : children}
+    <button className={className} type="submit" disabled={pending}>
+      {pending ? (pendingLabel ?? (variant === "link" ? "…" : "Saving…")) : children}
     </button>
   );
 }

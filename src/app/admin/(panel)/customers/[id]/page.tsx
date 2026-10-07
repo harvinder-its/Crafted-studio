@@ -5,6 +5,7 @@ import { getSessionUser } from "@/lib/auth";
 import { formatMoney } from "@/lib/money";
 import { formatAppointment } from "@/lib/time";
 import { deleteCustomer, updateCustomer } from "../actions";
+import AdminForm from "@/components/admin/AdminForm";
 import styles from "../../../admin.module.css";
 
 type Search = Promise<{ error?: string }>;
@@ -120,7 +121,7 @@ export default async function CustomerPage({
         <div className={styles.columns}>
           <section className={styles.panel}>
             <h2 className={styles.panelTitle}>Details</h2>
-            <form action={updateCustomer}>
+            <AdminForm action={updateCustomer} submitLabel="Save customer">
               <input type="hidden" name="id" value={customer.id} />
 
               <label className={styles.field}>
@@ -167,18 +168,18 @@ export default async function CustomerPage({
                 <span className={styles.hint}>Visible to staff only, never to the customer.</span>
               </label>
 
-              <button className={styles.button} type="submit">
-                Save customer
-              </button>
-            </form>
+            </AdminForm>
 
             {user.role === "OWNER" && customer.appointments.length === 0 ? (
-              <form action={deleteCustomer} style={{ marginTop: 16 }}>
+              <AdminForm
+                action={deleteCustomer}
+                variant="danger"
+                submitLabel="Delete this customer"
+                pendingLabel="Deleting…"
+                confirm={`Delete ${customer.name}?`}
+              >
                 <input type="hidden" name="id" value={customer.id} />
-                <button className={styles.buttonDanger} type="submit">
-                  Delete this customer
-                </button>
-              </form>
+              </AdminForm>
             ) : null}
           </section>
 

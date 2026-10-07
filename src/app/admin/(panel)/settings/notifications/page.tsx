@@ -1,5 +1,6 @@
 import { getSettings } from "@/lib/settings";
 import { updateNotifications } from "../actions";
+import AdminForm from "@/components/admin/AdminForm";
 import styles from "../../../admin.module.css";
 
 export const metadata = { title: "Notification settings" };
@@ -24,7 +25,7 @@ export default async function NotificationSettingsPage() {
         </p>
       ) : null}
 
-      <form action={updateNotifications}>
+      <AdminForm action={updateNotifications} submitLabel="Save notification settings">
         <h3 className={styles.subheading}>To the customer</h3>
 
         <label className={styles.checkbox}>
@@ -90,10 +91,7 @@ export default async function NotificationSettingsPage() {
           Salon notifications go to {settings.notifyEmail || "the address under General"}.
         </p>
 
-        <button className={styles.button} type="submit">
-          Save notification settings
-        </button>
-      </form>
+      </AdminForm>
     </section>
   );
 }

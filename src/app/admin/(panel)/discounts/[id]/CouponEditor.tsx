@@ -2,6 +2,7 @@
 
 import { useActionState, useState } from "react";
 import SaveButton from "@/components/admin/SaveButton";
+import AdminForm from "@/components/admin/AdminForm";
 import { deleteCoupon, updateCoupon } from "../actions";
 import type { ActionResult } from "@/lib/action-result";
 import styles from "../../../admin.module.css";
@@ -159,12 +160,15 @@ export default function CouponEditor({ coupon, categories, selectedServiceIds }:
           A coupon already used on a booking is switched off rather than deleted, so that
           booking&rsquo;s discount keeps its explanation.
         </p>
-        <form action={deleteCoupon}>
+        <AdminForm
+          action={deleteCoupon}
+          variant="danger"
+          submitLabel={`Remove ${coupon.code}`}
+          pendingLabel="Removing…"
+          confirm={`Remove the ${coupon.code} code?`}
+        >
           <input type="hidden" name="id" value={coupon.id} />
-          <button className={styles.buttonDanger} type="submit">
-            Remove {coupon.code}
-          </button>
-        </form>
+        </AdminForm>
       </section>
     </div>
   );

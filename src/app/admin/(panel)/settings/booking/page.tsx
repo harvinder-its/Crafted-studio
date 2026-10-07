@@ -1,5 +1,6 @@
 import { getSettings } from "@/lib/settings";
 import { updateBooking } from "../actions";
+import AdminForm from "@/components/admin/AdminForm";
 import styles from "../../../admin.module.css";
 
 export const metadata = { title: "Booking rules" };
@@ -15,7 +16,7 @@ export default async function BookingSettingsPage() {
         book yourself from the calendar.
       </p>
 
-      <form action={updateBooking}>
+      <AdminForm action={updateBooking} submitLabel="Save booking rules">
         <div className={styles.fieldRow}>
           <label className={styles.field}>
             <span className={styles.label}>Start times every (minutes)</span>
@@ -106,10 +107,7 @@ export default async function BookingSettingsPage() {
           <span className={styles.hint}>Shown on the booking page and in confirmation emails.</span>
         </label>
 
-        <button className={styles.button} type="submit">
-          Save booking rules
-        </button>
-      </form>
+      </AdminForm>
     </section>
   );
 }

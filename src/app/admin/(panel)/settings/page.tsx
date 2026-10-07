@@ -1,5 +1,6 @@
 import { getSettings } from "@/lib/settings";
 import { updateGeneral } from "./actions";
+import AdminForm from "@/components/admin/AdminForm";
 import styles from "../../admin.module.css";
 
 export const metadata = { title: "General settings" };
@@ -14,7 +15,7 @@ export default async function GeneralSettingsPage() {
         Used on the website, in confirmation emails and on the booking page.
       </p>
 
-      <form action={updateGeneral}>
+      <AdminForm action={updateGeneral} submitLabel="Save details">
         <label className={styles.field}>
           <span className={styles.label}>Salon name</span>
           <input className={styles.input} name="salonName" defaultValue={settings.salonName} required />
@@ -55,10 +56,7 @@ export default async function GeneralSettingsPage() {
           </span>
         </label>
 
-        <button className={styles.button} type="submit">
-          Save details
-        </button>
-      </form>
+      </AdminForm>
     </section>
   );
 }

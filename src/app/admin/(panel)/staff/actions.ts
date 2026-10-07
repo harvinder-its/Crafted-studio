@@ -43,11 +43,14 @@ const text = (form: FormData, key: string, max = 300) =>
 
 // ---------------------------------------------------------------- roster
 
-export async function createStaff(formData: FormData) {
+export async function createStaff(
+  _prev: ActionResult,
+  formData: FormData,
+): Promise<ActionResult> {
   await requireOwner();
 
   const name = text(formData, "name", 80);
-  if (!name) return;
+  if (!name) return fail("Give the barber a name");
 
   // Two barbers can share a first name; the slug must still be unique.
   let slug = slugify(name);
@@ -100,10 +103,13 @@ export async function updateStaff(_prev: ActionResult, formData: FormData): Prom
  * at them, and deleting the row would either fail or orphan the record of who
  * cut whose hair. Only a barber with no bookings is deleted outright.
  */
-export async function deleteStaff(formData: FormData) {
+export async function deleteStaff(
+  _prev: ActionResult,
+  formData: FormData,
+): Promise<ActionResult> {
   await requireOwner();
   const id = text(formData, "id", 40);
-  if (!id) return;
+  if (!id) return fail("Barber not found");
 
   const bookings = await db.appointment.count({ where: { staffId: id } });
 
@@ -214,16 +220,20 @@ export async function addStaffBreak(
   return ok("Break added");
 }
 
-export async function deleteStaffBreak(formData: FormData) {
+export async function deleteStaffBreak(
+  _prev: ActionResult,
+  formData: FormData,
+): Promise<ActionResult> {
   const id = String(formData.get("breakId") ?? "");
-  if (!id) return;
+  if (!id) return fail("Break not found");
 
   const row = await db.staffBreak.findUnique({ where: { id }, select: { staffId: true } });
-  if (!row) return;
+  if (!row) return fail("Break not found");
   await assertCanEditAvailability(row.staffId);
 
   await db.staffBreak.delete({ where: { id } });
   revalidatePath(`/admin/staff/${row.staffId}`);
+  return ok("Break removed");
 }
 
 // ---------------------------------------------------------------- days off
@@ -266,16 +276,20 @@ export async function addStaffDayOff(
   return ok(useCustom ? "Hours set for that date" : "Day off added");
 }
 
-export async function deleteSpecialDate(formData: FormData) {
+export async function deleteSpecialDate(
+  _prev: ActionResult,
+  formData: FormData,
+): Promise<ActionResult> {
   const id = String(formData.get("specialDateId") ?? "");
-  if (!id) return;
+  if (!id) return fail("Date not found");
 
   const row = await db.specialDate.findUnique({ where: { id }, select: { staffId: true } });
-  if (!row) return;
+  if (!row) return fail("Date not found");
   if (row.staffId) await assertCanEditAvailability(row.staffId);
   else await requireOwner(); // salon-wide closures are the owner's
 
   await db.specialDate.delete({ where: { id } });
   if (row.staffId) revalidatePath(`/admin/staff/${row.staffId}`);
   revalidatePath("/admin/settings/hours");
+  return ok("Day off removed");
 }
