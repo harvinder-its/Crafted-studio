@@ -1,13 +1,16 @@
 import Image from "next/image";
 import Link from "next/link";
-import { footerNav, site, social } from "@/lib/site";
+import { footerNav, social } from "@/lib/site";
+import { getContact } from "@/lib/public-content";
 
 /**
  * The template's footer is identical on every page, so this is a plain Server
  * Component. On multipage routes the section links resolve against the homepage;
  * on one-page routes they are same-page anchors.
  */
-export default function Footer({ onepage = false }: { onepage?: boolean }) {
+export default async function Footer({ onepage = false }: { onepage?: boolean }) {
+  // Address, email and salon name come from Settings -> General.
+  const contact = await getContact();
   return (
     <footer>
       <div className="container">
@@ -25,14 +28,14 @@ export default function Footer({ onepage = false }: { onepage?: boolean }) {
             <div className="text-center">
               <address className="fs-20 fst-normal">
                 <small className="mb-1">
-                  {site.address.line1}
+                  {contact.line1}
                   <br />
-                  {site.address.line2}
+                  {contact.line2}
                 </small>
                 <br />
                 <small className="mb-0">
-                  <a href={`mailto:${site.email}`} className="text-light text-decoration-none">
-                    <span className="id-color">{site.email}</span>
+                  <a href={`mailto:${contact.email}`} className="text-light text-decoration-none">
+                    <span className="id-color">{contact.email}</span>
                   </a>
                 </small>
               </address>
@@ -74,7 +77,7 @@ export default function Footer({ onepage = false }: { onepage?: boolean }) {
       <div className="subfooter">
         <div className="container">
           <div className="row">
-            <div className="col-12 text-center">{site.copyright}</div>
+            <div className="col-12 text-center">{`Copyright © ${new Date().getFullYear()} ${contact.name}. All Rights Reserved.`}</div>
           </div>
         </div>
       </div>

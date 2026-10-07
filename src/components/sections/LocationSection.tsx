@@ -1,10 +1,11 @@
 import Image from "next/image";
 import Parallax from "@/components/ui/Parallax";
 import PinnedOverlay from "@/components/ui/PinnedOverlay";
-import { site } from "@/lib/site";
+import { getContact } from "@/lib/public-content";
 
 /** The tall parallax band whose location card holds in the middle of the screen. */
-export default function LocationSection() {
+export default async function LocationSection() {
+  const contact = await getContact();
   return (
     <Parallax
       className="mh-1000 p-0 relative overflow-hidden section-dark text-light"
@@ -32,14 +33,14 @@ export default function LocationSection() {
                   <h2 className="mb-3">Our Location</h2>
 
                   <address className="mb-1 fst-normal">
-                    {site.address.line1}
+                    {contact.line1}
                     <br />
-                    {site.address.line2}
+                    {contact.line2}
                   </address>
 
                   <p className="mb-0">
-                    <a href={`mailto:${site.email}`} className="text-light text-decoration-none">
-                      <span className="id-color">{site.email}</span>
+                    <a href={`mailto:${contact.email}`} className="text-light text-decoration-none">
+                      <span className="id-color">{contact.email}</span>
                     </a>
                   </p>
                 </div>

@@ -1,17 +1,25 @@
 import Reveal from "@/components/ui/Reveal";
 import SectionHeading from "./SectionHeading";
-import { serviceMenu, type MenuCategory } from "@/lib/site";
+import { getPublicMenu, type PublicCategory } from "@/lib/public-content";
 
 /**
- * The full price list on /services. Each row reuses the opening-hours markup
- * from the booking section (name left, value right, hairline between), so the
- * list needs no styles of its own.
+ * The full price list on /services, read from the database so it always matches
+ * what the admin shows. Each row reuses the opening-hours markup from the
+ * booking section (name left, value right, hairline between), so the list needs
+ * no styles of its own.
  *
- * Men's is by far the longest category, so it takes the left column and the
- * other three stack on the right; the two columns come out roughly even.
+ * The longest category takes the left column on its own and the rest stack on
+ * the right, which keeps the two columns roughly even whatever the salon adds.
  */
-export default function ServiceMenu() {
-  const [first, ...rest] = serviceMenu;
+export default async function ServiceMenu() {
+  const menu = await getPublicMenu();
+  if (menu.length === 0) return null;
+
+  const longest = menu.reduce(
+    (best, category, index) => (category.items.length > menu[best].items.length ? index : best),
+    0,
+  );
+  const rest = menu.filter((_, index) => index !== longest);
 
   return (
     <section id="section-pricing" className="pt-0 text-light" aria-label="Service menu">
@@ -30,7 +38,7 @@ export default function ServiceMenu() {
 
         <div className="row g-4 gx-5">
           <div className="col-lg-6">
-            <Category category={first} />
+            <Category category={menu[longest]} />
           </div>
           <div className="col-lg-6">
             {rest.map((category, i) => (
@@ -43,7 +51,7 @@ export default function ServiceMenu() {
   );
 }
 
-function Category({ category, spaced = false }: { category: MenuCategory; spaced?: boolean }) {
+function Category({ category, spaced = false }: { category: PublicCategory; spaced?: boolean }) {
   return (
     <Reveal className={spaced ? "mt-5" : undefined}>
       <h3 className="mb-2">{category.title}</h3>

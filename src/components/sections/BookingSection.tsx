@@ -1,10 +1,16 @@
-import BookingForm from "./BookingForm";
+import BookingWizard from "./BookingWizard";
 import SectionHeading from "./SectionHeading";
 import Reveal from "@/components/ui/Reveal";
-import { hours } from "@/lib/site";
+import { getBookingWizardData, getPublicHours } from "@/lib/public-content";
 
-/** Booking form on the left, opening hours on the right. */
-export default function BookingSection({ withHeading = false }: { withHeading?: boolean }) {
+/**
+ * The step-by-step booking flow on the left, opening hours on the right — both
+ * from the database, so adding a service or changing an opening time in the
+ * admin shows here straight away.
+ */
+export default async function BookingSection({ withHeading = false }: { withHeading?: boolean }) {
+  const [hours, wizard] = await Promise.all([getPublicHours(), getBookingWizardData()]);
+
   return (
     <section id="section-booking" className="pb-0 text-light" aria-label="Book an appointment">
       <div className="container">
@@ -25,7 +31,12 @@ export default function BookingSection({ withHeading = false }: { withHeading?: 
         <div className="row g-4 gx-5">
           <Reveal className="col-lg-6" animation="fadeInLeft" duration={0.9}>
             <div className="relative">
-              <BookingForm />
+              <BookingWizard
+                categories={wizard.categories}
+                staff={wizard.staff}
+                addOns={wizard.addOns}
+                rules={wizard.rules}
+              />
             </div>
           </Reveal>
 

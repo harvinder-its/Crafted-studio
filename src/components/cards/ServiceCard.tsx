@@ -1,13 +1,13 @@
 import Image from "next/image";
 import Reveal from "@/components/ui/Reveal";
-import type { FeaturedService } from "@/lib/site";
+import type { PublicFeaturedService } from "@/lib/public-content";
 
 /** One featured-service tile: image, hover dim, and the copy stacked over the gradient. */
 export default function ServiceCard({
   service,
   delay = 0,
 }: {
-  service: FeaturedService;
+  service: PublicFeaturedService;
   delay?: number;
 }) {
   return (
