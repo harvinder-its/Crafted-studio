@@ -4,6 +4,7 @@ import { z } from "zod";
 import { db } from "@/lib/db";
 import { appointmentLength, isSlotFree } from "@/lib/availability";
 import { getSettings } from "@/lib/settings";
+import { notifyNewBooking } from "@/lib/notify";
 
 export const runtime = "nodejs";
 
@@ -174,8 +175,12 @@ export async function POST(request: Request) {
         })),
       },
     },
-    select: { code: true },
+    select: { id: true, code: true },
   });
+
+  // The customer is told the booking worked as soon as it is stored; the emails
+  // are not allowed to hold that up or to fail it.
+  await notifyNewBooking(appointment.id);
 
   return NextResponse.json({ ok: true, code: appointment.code });
 }

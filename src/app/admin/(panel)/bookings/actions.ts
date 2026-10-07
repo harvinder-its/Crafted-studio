@@ -8,6 +8,7 @@ import { fail, ok, type ActionResult } from "@/lib/action-result";
 import { allowedStaffIds, requireUser } from "@/lib/auth";
 import { appointmentLength, isSlotFree } from "@/lib/availability";
 import { getSettings } from "@/lib/settings";
+import { notifyCancellation, notifyNewBooking } from "@/lib/notify";
 import { labelToMinutes, parseDateKey, zonedToUtc } from "@/lib/time";
 
 /**
@@ -95,6 +96,8 @@ export async function setAppointmentStatus(
     data: { status, ...(status === "CANCELLED" ? { cancelledAt: new Date() } : {}) },
   });
 
+  if (status === "CANCELLED") await notifyCancellation(id);
+
   revalidatePath("/admin/bookings");
   return ok(STATUS_SAVED[status]);
 }
@@ -162,7 +165,8 @@ export async function createAppointment(formData: FormData) {
     create: { email, name, phone },
   });
 
-  await db.appointment.create({
+  const created = await db.appointment.create({
+    select: { id: true },
     data: {
       code: bookingCode(),
       customerId: customer.id,
@@ -179,6 +183,9 @@ export async function createAppointment(formData: FormData) {
       staffNote: text(formData, "staffNote", 1000),
     },
   });
+
+  // The salon already knows about this one — only the customer needs telling.
+  await notifyNewBooking(created.id, { announceToAdmin: false });
 
   revalidatePath("/admin/bookings");
   redirect(`/admin/bookings?view=day&date=${dateKey}${user.role === "OWNER" ? "" : ""}`);

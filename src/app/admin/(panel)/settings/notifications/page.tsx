@@ -1,3 +1,4 @@
+import { db } from "@/lib/db";
 import { getSettings } from "@/lib/settings";
 import { updateNotifications } from "../actions";
 import AdminForm from "@/components/admin/AdminForm";
@@ -7,11 +8,29 @@ export const metadata = { title: "Notification settings" };
 
 const resendConfigured = () => Boolean(process.env.RESEND_API_KEY);
 
+const TYPE_LABEL: Record<string, string> = {
+  BOOKING_CONFIRMATION: "Confirmation to customer",
+  REMINDER: "Reminder to customer",
+  CANCELLATION: "Cancellation to customer",
+  RESCHEDULED: "Reschedule to customer",
+  ADMIN_NEW_BOOKING: "New booking to salon",
+  ADMIN_CANCELLATION: "Cancellation to salon",
+  ADMIN_PAYMENT: "Payment to salon",
+};
+
 export default async function NotificationSettingsPage() {
-  const settings = await getSettings();
+  const [settings, sent] = await Promise.all([
+    getSettings(),
+    db.notificationLog.findMany({
+      orderBy: { createdAt: "desc" },
+      take: 25,
+      select: { id: true, type: true, toAddress: true, state: true, error: true, createdAt: true },
+    }),
+  ]);
   const ready = resendConfigured();
 
   return (
+    <>
     <section className={styles.panel}>
       <h2 className={styles.panelTitle}>Notifications</h2>
       <p className={styles.panelNote}>
@@ -93,5 +112,49 @@ export default async function NotificationSettingsPage() {
 
       </AdminForm>
     </section>
+
+    {/* Why a message did or did not arrive, rather than guessing. */}
+    <section className={styles.panel}>
+      <h2 className={styles.panelTitle}>Delivery log</h2>
+      <p className={styles.panelNote}>
+        The last 25 messages the salon tried to send, newest first.
+      </p>
+
+      {sent.length === 0 ? (
+        <p className={styles.subtitle}>
+          Nothing sent yet. A message appears here the next time a booking is made.
+        </p>
+      ) : (
+        <table className={styles.table}>
+          <thead>
+            <tr>
+              <th>When</th>
+              <th>Message</th>
+              <th>To</th>
+              <th>Result</th>
+            </tr>
+          </thead>
+          <tbody>
+            {sent.map((row) => (
+              <tr key={row.id}>
+                <td>{row.createdAt.toISOString().slice(0, 16).replace("T", " ")}</td>
+                <td>{TYPE_LABEL[row.type] ?? row.type}</td>
+                <td>{row.toAddress}</td>
+                <td>
+                  {row.state === "SENT" ? (
+                    <span className={styles.tag}>Sent</span>
+                  ) : (
+                    <span className={styles.warn}>
+                      {row.state === "QUEUED" ? "Queued" : row.error || "Failed"}
+                    </span>
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+    </section>
+    </>
   );
 }

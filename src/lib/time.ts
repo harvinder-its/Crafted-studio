@@ -144,9 +144,11 @@ export function durationLabel(totalMinutes: number): string {
   return `${hours} hr ${minutes} min`;
 }
 
-/** "Saturday, 4 October 2026 at 10:30 AM" in the salon's timezone. */
+/** "Saturday, October 4, 2026 at 10:30 AM" in the salon's timezone. */
 export function formatAppointment(instant: Date, timeZone = DEFAULT_TIMEZONE): string {
-  return new Intl.DateTimeFormat("en-CA", {
+  // en-US so the suffix reads "AM"/"PM" like minutesToLabel and the opening
+  // hours on the site, rather than en-CA's "a.m."/"p.m.".
+  return new Intl.DateTimeFormat("en-US", {
     timeZone,
     weekday: "long",
     day: "numeric",
