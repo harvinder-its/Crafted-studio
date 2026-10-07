@@ -22,9 +22,6 @@ import "@/styles/colors/gold.css";
 // Project overrides — always last so they win.
 import "./globals.css";
 
-import Preloader from "@/components/ui/Preloader";
-import ScrollIndicator from "@/components/ui/ScrollIndicator";
-import SmoothScroll from "@/components/providers/SmoothScroll";
 import { site } from "@/lib/site";
 
 // The template loaded these from Google's CDN; next/font self-hosts them, which
@@ -85,14 +82,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           }}
         />
       </head>
-      {/* The template set these two classes on <body>; every page depends on them. */}
-      <body className="dark-scheme text-light">
-        <SmoothScroll>
-          <Preloader />
-          <ScrollIndicator />
-          {children}
-        </SmoothScroll>
-      </body>
+      {/*
+       * The template set these two classes on <body>; every page depends on them.
+       * The site's chrome — smooth scroll, preloader, scroll indicator — belongs
+       * to the public layouts, not here: the admin panel is a dense tool, and
+       * hijacked scrolling makes a calendar unpleasant to work in.
+       */}
+      <body className="dark-scheme text-light">{children}</body>
     </html>
   );
 }
