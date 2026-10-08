@@ -264,6 +264,33 @@ export const marqueeItems = [
 ] as const;
 
 /** The "our history" band on /about — a horizontally scrolled timeline. */
+/**
+ * What a first-time visitor can expect, on /about. Placeholder wording until
+ * the shop supplies its own — nothing here is a claim the site can verify.
+ */
+export const values = [
+  {
+    icon: "icofont-cut",
+    title: "Precision First",
+    body: "Every cut starts with a consultation. We look at how your hair grows and how you style it before a blade touches it, so the shape still works three weeks later.",
+  },
+  {
+    icon: "icofont-leaf",
+    title: "Clean Throughout",
+    body: "Tools are sanitised between every client, capes and towels are fresh, and the chair is wiped down before you sit in it. No exceptions, no shortcuts.",
+  },
+  {
+    icon: "icofont-diamond",
+    title: "Products That Earn It",
+    body: "We use what we would put in our own hair. Ask what is on the shelf and you will get an honest answer, including when the cheaper tub does the same job.",
+  },
+  {
+    icon: "icofont-clock-time",
+    title: "Your Time Respected",
+    body: "Appointments are spaced so nobody is rushed and nobody is kept waiting. Book the slot, arrive, and leave when you expected to.",
+  },
+] as const;
+
 export const history = [
   {
     year: "1998",
