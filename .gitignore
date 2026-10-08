@@ -45,3 +45,6 @@ next-env.d.ts
 
 # keep the example env committed
 !.env.example
+
+# Rendered email previews — regenerate with `npm run mail:preview`.
+preview/

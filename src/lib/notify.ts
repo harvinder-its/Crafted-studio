@@ -1,7 +1,9 @@
+import path from "node:path";
 import nodemailer, { type Transporter } from "nodemailer";
 import { db } from "./db";
-import { getSettings } from "./settings";
+import { getSettings, type Settings } from "./settings";
 import { durationLabel, formatAppointment } from "./time";
+import { LOGO_CID, renderEmail, renderText, type EmailContent, type EmailRow } from "./email-template";
 
 /**
  * Booking emails.
@@ -26,16 +28,6 @@ type NotificationType =
   | "ADMIN_NEW_BOOKING"
   | "ADMIN_CANCELLATION";
 
-const ENTITIES: Record<string, string> = {
-  "&": "&amp;",
-  "<": "&lt;",
-  ">": "&gt;",
-  '"': "&quot;",
-  "'": "&#39;",
-};
-
-const escapeHtml = (value: string) => value.replace(/[&<>"']/g, (c) => ENTITIES[c]);
-
 const money = (cents: number, currency: string) => `${currency} ${(cents / 100).toFixed(2)}`;
 
 /** The appointment, with everything an email needs to describe it. */
@@ -58,16 +50,23 @@ const appointmentForEmail = (id: string) =>
 
 type Appointment = NonNullable<Awaited<ReturnType<typeof appointmentForEmail>>>;
 
-function rowsFor(appointment: Appointment): [string, string][] {
+/** The appointment itself. What the customer is told. */
+function bookingRows(appointment: Appointment): EmailRow[] {
   const minutes = Math.round((appointment.endsAt.getTime() - appointment.startsAt.getTime()) / 60000);
 
   return [
-    ["Reference", appointment.code],
     ["Service", appointment.service.name],
     ["With", appointment.staff.name],
     ["When", formatAppointment(appointment.startsAt)],
     ["Length", durationLabel(minutes)],
     ["Price", money(appointment.priceCents, appointment.currency)],
+  ];
+}
+
+/** The above, plus who booked it — the salon's copy. */
+function adminRows(appointment: Appointment): EmailRow[] {
+  return [
+    ...bookingRows(appointment),
     ["Name", appointment.customer.name],
     ["Phone", appointment.customer.phone],
     ["Email", appointment.customer.email],
@@ -75,15 +74,14 @@ function rowsFor(appointment: Appointment): [string, string][] {
   ];
 }
 
-function table(rows: [string, string][]) {
-  const cell = "border:1px solid #e3e3e3;padding:8px 12px";
-  return `<table style="border-collapse:collapse;font:14px/1.5 sans-serif">${rows
-    .map(
-      ([key, value]) =>
-        `<tr><td style="${cell};color:#666">${escapeHtml(key)}</td><td style="${cell}">${escapeHtml(value)}</td></tr>`,
-    )
-    .join("")}</table>`;
-}
+/** Address and contact details for the footer, from the salon's own settings. */
+const salonFrom = (settings: Settings) => ({
+  name: settings.salonName,
+  addressLine1: settings.addressLine1,
+  addressLine2: settings.addressLine2,
+  phone: settings.phone,
+  email: settings.notifyEmail,
+});
 
 /** The mailbox the site sends from, or null when it has not been set up. */
 export function mailConfig() {
@@ -133,12 +131,11 @@ async function send(options: {
   type: NotificationType;
   to: string;
   subject: string;
-  html: string;
-  text: string;
+  content: EmailContent;
   replyTo?: string;
   appointmentId?: string;
 }) {
-  const { type, to, subject, html, text, replyTo, appointmentId } = options;
+  const { type, to, subject, content, replyTo, appointmentId } = options;
   if (!to) return;
 
   const log = await db.notificationLog.create({
@@ -165,8 +162,19 @@ async function send(options: {
       to,
       replyTo,
       subject,
-      html,
-      text,
+      html: renderEmail(content),
+      text: renderText(content),
+      // Carried with the message rather than linked, so the logo appears even
+      // before the site is live and whatever the recipient's image settings do
+      // to remote content.
+      attachments: [
+        {
+          filename: "crafted-studio.png",
+          path: path.join(process.cwd(), "public", "images", "email-logo.png"),
+          cid: LOGO_CID,
+          contentDisposition: "inline",
+        },
+      ],
     });
 
     await db.notificationLog.update({
@@ -200,9 +208,9 @@ export async function notifyNewBooking(
     ]);
     if (!appointment) return;
 
-    const rows = rowsFor(appointment);
     const when = formatAppointment(appointment.startsAt);
     const admin = adminAddressFrom(settings.notifyEmail);
+    const salon = salonFrom(settings);
 
     if (announceToAdmin && settings.notifyAdminNewBooking && admin) {
       await send({
@@ -211,30 +219,35 @@ export async function notifyNewBooking(
         replyTo: appointment.customer.email,
         appointmentId: appointment.id,
         subject: `New booking — ${appointment.customer.name}, ${when}`,
-        html: `<h2>New booking</h2>${table(rows)}`,
-        text: rows.map(([k, v]) => `${k}: ${v}`).join("\n"),
+        content: {
+          preheader: `${appointment.service.name} with ${appointment.staff.name}, ${when}`,
+          eyebrow: "New booking",
+          heading: appointment.customer.name,
+          intro: "Booked online just now.",
+          code: appointment.code,
+          rows: adminRows(appointment),
+          salon,
+        },
       });
     }
 
     if (settings.notifyCustomerConfirmation && appointment.customer.email) {
-      const theirs = rows.slice(0, 6);
       await send({
         type: "BOOKING_CONFIRMATION",
         to: appointment.customer.email,
         replyTo: admin || undefined,
         appointmentId: appointment.id,
         subject: `Your appointment at ${settings.salonName} — ${when}`,
-        html:
-          `<h2>You're booked in</h2>` +
-          `<p>Thanks ${escapeHtml(appointment.customer.name)}, we'll see you then.</p>` +
-          table(theirs) +
-          (settings.cancellationPolicy
-            ? `<p style="color:#666;font:14px sans-serif">${escapeHtml(settings.cancellationPolicy)}</p>`
-            : ""),
-        text:
-          `You're booked in at ${settings.salonName}.\n\n` +
-          theirs.map(([k, v]) => `${k}: ${v}`).join("\n") +
-          `\n\n${settings.cancellationPolicy}`,
+        content: {
+          preheader: `${when} with ${appointment.staff.name}. Reference ${appointment.code}.`,
+          eyebrow: "Confirmed",
+          heading: "You're booked in",
+          intro: `Thanks ${appointment.customer.name} — we'll see you then.`,
+          code: appointment.code,
+          rows: bookingRows(appointment),
+          note: settings.cancellationPolicy || undefined,
+          salon,
+        },
       });
     }
   } catch (cause) {
@@ -252,9 +265,9 @@ export async function notifyCancellation(appointmentId: string) {
     ]);
     if (!appointment) return;
 
-    const rows = rowsFor(appointment);
     const when = formatAppointment(appointment.startsAt);
     const admin = adminAddressFrom(settings.notifyEmail);
+    const salon = salonFrom(settings);
 
     if (settings.notifyCustomerCancellation && appointment.customer.email) {
       await send({
@@ -263,11 +276,14 @@ export async function notifyCancellation(appointmentId: string) {
         replyTo: admin || undefined,
         appointmentId: appointment.id,
         subject: `Your appointment at ${settings.salonName} has been cancelled`,
-        html:
-          `<h2>Appointment cancelled</h2>` +
-          `<p>Your booking on ${escapeHtml(when)} has been cancelled. Get in touch any time to rebook.</p>` +
-          table(rows.slice(0, 4)),
-        text: `Your booking on ${when} has been cancelled.\n\nReference: ${appointment.code}`,
+        content: {
+          preheader: `${when} is no longer booked.`,
+          eyebrow: "Cancelled",
+          heading: "Appointment cancelled",
+          intro: `Your booking on ${when} has been cancelled. Get in touch any time to rebook — we'd be glad to see you.`,
+          rows: bookingRows(appointment),
+          salon,
+        },
       });
     }
 
@@ -277,8 +293,15 @@ export async function notifyCancellation(appointmentId: string) {
         to: admin,
         appointmentId: appointment.id,
         subject: `Cancelled — ${appointment.customer.name}, ${when}`,
-        html: `<h2>Booking cancelled</h2>${table(rows)}`,
-        text: rows.map(([k, v]) => `${k}: ${v}`).join("\n"),
+        content: {
+          preheader: `${appointment.service.name} with ${appointment.staff.name}, ${when}`,
+          eyebrow: "Cancelled",
+          heading: appointment.customer.name,
+          intro: "This slot is free again.",
+          code: appointment.code,
+          rows: adminRows(appointment),
+          salon,
+        },
       });
     }
   } catch (cause) {
