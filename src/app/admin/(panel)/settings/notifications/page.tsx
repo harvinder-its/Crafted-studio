@@ -1,12 +1,11 @@
 import { db } from "@/lib/db";
+import { mailConfig } from "@/lib/notify";
 import { getSettings } from "@/lib/settings";
 import { updateNotifications } from "../actions";
 import AdminForm from "@/components/admin/AdminForm";
 import styles from "../../../admin.module.css";
 
 export const metadata = { title: "Notification settings" };
-
-const resendConfigured = () => Boolean(process.env.RESEND_API_KEY);
 
 const TYPE_LABEL: Record<string, string> = {
   BOOKING_CONFIRMATION: "Confirmation to customer",
@@ -27,7 +26,7 @@ export default async function NotificationSettingsPage() {
       select: { id: true, type: true, toAddress: true, state: true, error: true, createdAt: true },
     }),
   ]);
-  const ready = resendConfigured();
+  const ready = Boolean(mailConfig());
 
   return (
     <>
@@ -40,7 +39,8 @@ export default async function NotificationSettingsPage() {
 
       {!ready ? (
         <p className={styles.warnBox}>
-          No Resend API key set, so nothing can be sent yet. These switches are saved either way.
+          No mailbox is connected, so nothing can be sent yet — set SMTP_HOST, SMTP_USER and
+          SMTP_PASS on the server. These switches are saved either way.
         </p>
       ) : null}
 

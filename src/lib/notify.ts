@@ -1,4 +1,4 @@
-import { Resend } from "resend";
+import nodemailer, { type Transporter } from "nodemailer";
 import { db } from "./db";
 import { getSettings } from "./settings";
 import { durationLabel, formatAppointment } from "./time";
@@ -9,8 +9,11 @@ import { durationLabel, formatAppointment } from "./time";
  * Who a message goes to is a salon setting, not an environment variable: the
  * admin address is `Settings.notifyEmail`, so changing it under Settings →
  * General changes where new bookings are announced, with no redeploy. Only the
- * sending account stays in the environment, because the "from" address has to
- * be a domain verified with Resend and is not the admin's to pick.
+ * mailbox the site sends *from* lives in the environment, because it carries a
+ * password and must not be editable from a browser.
+ *
+ * Delivery is plain SMTP, so any mailbox works — the one that came with the
+ * domain, Outlook, Gmail — with no third-party sending service in between.
  *
  * Nothing here is allowed to break a booking. The appointment is already stored
  * by the time we get this far, so a mail failure is recorded in NotificationLog
@@ -82,9 +85,49 @@ function table(rows: [string, string][]) {
     .join("")}</table>`;
 }
 
+/** The mailbox the site sends from, or null when it has not been set up. */
+export function mailConfig() {
+  const host = process.env.SMTP_HOST;
+  const user = process.env.SMTP_USER;
+  const pass = process.env.SMTP_PASS;
+  if (!host || !user || !pass) return null;
+
+  // 465 is TLS from the first byte; 587 and 25 start plain and upgrade with
+  // STARTTLS. Getting this pair wrong is the usual reason a mailbox refuses the
+  // connection, so it follows the port rather than being asked for separately.
+  const port = Number(process.env.SMTP_PORT) || 587;
+
+  return {
+    host,
+    port,
+    secure: process.env.SMTP_SECURE ? process.env.SMTP_SECURE === "true" : port === 465,
+    auth: { user, pass },
+    // Most mailboxes refuse to send as anyone but the account holder, so the
+    // account address is the default sender.
+    from: process.env.BOOKING_FROM_EMAIL || user,
+  };
+}
+
+// One connection pool for the process, rather than a fresh TCP + TLS handshake
+// per email.
+let transport: Transporter | undefined;
+
+function getTransport(config: NonNullable<ReturnType<typeof mailConfig>>) {
+  if (!transport) {
+    transport = nodemailer.createTransport({
+      host: config.host,
+      port: config.port,
+      secure: config.secure,
+      auth: config.auth,
+      pool: true,
+    });
+  }
+  return transport;
+}
+
 /**
  * One message. Logged either way, so an admin who is not receiving mail can see
- * whether it was never attempted, refused by the provider, or actually sent.
+ * whether it was never attempted, refused by the mail server, or actually sent.
  */
 async function send(options: {
   type: NotificationType;
@@ -103,23 +146,22 @@ async function send(options: {
     select: { id: true },
   });
 
-  const apiKey = process.env.RESEND_API_KEY;
-  const from = process.env.BOOKING_FROM_EMAIL;
+  const config = mailConfig();
 
-  if (!apiKey || !from) {
+  if (!config) {
     await db.notificationLog.update({
       where: { id: log.id },
       data: {
         state: "FAILED",
-        error: "Email is not configured — set RESEND_API_KEY and BOOKING_FROM_EMAIL.",
+        error: "Email is not set up — add SMTP_HOST, SMTP_USER and SMTP_PASS.",
       },
     });
     return;
   }
 
   try {
-    const { error } = await new Resend(apiKey).emails.send({
-      from,
+    await getTransport(config).sendMail({
+      from: config.from,
       to,
       replyTo,
       subject,
@@ -129,14 +171,15 @@ async function send(options: {
 
     await db.notificationLog.update({
       where: { id: log.id },
-      data: error
-        ? { state: "FAILED", error: String(error.message ?? error).slice(0, 500) }
-        : { state: "SENT", sentAt: new Date() },
+      data: { state: "SENT", sentAt: new Date() },
     });
   } catch (cause) {
+    // The server's own wording is the useful part — "535 authentication
+    // failed", "550 relay denied" — so it is kept rather than flattened.
+    const message = cause instanceof Error ? cause.message : String(cause);
     await db.notificationLog.update({
       where: { id: log.id },
-      data: { state: "FAILED", error: String(cause).slice(0, 500) },
+      data: { state: "FAILED", error: message.slice(0, 500) },
     });
   }
 }
