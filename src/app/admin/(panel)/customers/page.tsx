@@ -23,9 +23,11 @@ export default async function CustomersPage({ searchParams }: { searchParams: Se
 
   const where = q
     ? {
+        // MySQL compares strings case-insensitively under its default collation,
+        // so matching needs no mode flag — and Prisma rejects one on MySQL.
         OR: [
-          { name: { contains: q, mode: "insensitive" as const } },
-          { email: { contains: q, mode: "insensitive" as const } },
+          { name: { contains: q } },
+          { email: { contains: q } },
           { phone: { contains: q } },
         ],
       }

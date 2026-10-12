@@ -48,3 +48,6 @@ next-env.d.ts
 
 # Rendered email previews — regenerate with `npm run mail:preview`.
 preview/
+
+# Database export produced by `npm run db:export` — contains customer data.
+migration-data.json

@@ -21,7 +21,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "mysql"
 }
 
 // ---------------------------------------------------------------- people
@@ -52,7 +52,7 @@ model Staff {
   name     String
   slug     String  @unique
   title    String  @default("") // "Master Barber"
-  bio      String  @default("")
+  bio      String  @default("") @db.Text
   email    String?
   phone    String?
   imageUrl String?
@@ -99,7 +99,7 @@ model Service {
   categoryId  String
   name        String
   slug        String          @unique
-  description String          @default("")
+  description String          @default("") @db.Text
   imageUrl    String?
 
   priceCents   Int       @default(0)
@@ -212,7 +212,7 @@ model SpecialDate {
   type        SpecialDateType @default(CLOSED)
   openMinute  Int?
   closeMinute Int?
-  note        String          @default("")
+  note        String          @default("") @db.Text
   staff       Staff?          @relation(fields: [staffId], references: [id], onDelete: Cascade)
   staffId     String?
 
@@ -227,7 +227,7 @@ model TimeOff {
   staffId  String
   startsAt DateTime
   endsAt   DateTime
-  note     String   @default("")
+  note     String   @default("") @db.Text
 
   @@index([staffId, startsAt])
 }
@@ -239,7 +239,7 @@ model Customer {
   email String @unique
   name  String
   phone String
-  notes String @default("")
+  notes String @default("") @db.Text
 
   /// Set explicitly by staff; the booking history says who they actually see.
   preferredStaff   Staff?  @relation(fields: [preferredStaffId], references: [id], onDelete: SetNull)
@@ -314,8 +314,8 @@ model Appointment {
   stripeSessionId       String? @unique
   stripePaymentIntentId String?
 
-  customerNote String             @default("")
-  staffNote    String             @default("")
+  customerNote String             @default("") @db.Text
+  staffNote    String             @default("") @db.Text
   addOns       AppointmentAddOn[]
   payments     Payment[]
   notifications NotificationLog[]
@@ -370,7 +370,7 @@ model Payment {
   status        PaymentState  @default(PAID)
   /// Stripe id, terminal receipt number, or whatever the salon writes down.
   reference     String?
-  note          String        @default("")
+  note          String        @default("") @db.Text
 
   takenBy   AdminUser? @relation(fields: [takenById], references: [id], onDelete: SetNull)
   takenById String?
@@ -454,8 +454,8 @@ model NotificationLog {
   state   NotificationState   @default(QUEUED)
 
   toAddress String
-  subject   String  @default("")
-  error     String?
+  subject   String  @default("") @db.Text
+  error     String? @db.Text
 
   appointment   Appointment? @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
   appointmentId String?
@@ -496,7 +496,7 @@ model Settings {
   /// Added to every service that does not set its own buffer.
   defaultBufferMinutes Int    @default(0)
   allowSameDayBooking  Boolean @default(true)
-  cancellationPolicy   String  @default("Please give at least 24 hours' notice to cancel or reschedule.")
+  cancellationPolicy   String  @default("Please give at least 24 hours' notice to cancel or reschedule.") @db.Text
 
   // --- payments
   taxPercent        Int     @default(0)
