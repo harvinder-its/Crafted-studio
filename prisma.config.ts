@@ -24,7 +24,7 @@ for (const file of [".env", ".env.local"]) {
  * error instead, which is the right moment to notice.
  */
 const url =
-  process.env.DATABASE_URL ?? "postgresql://placeholder:placeholder@localhost:5432/placeholder";
+  process.env.DATABASE_URL ?? "mysql://placeholder:placeholder@localhost:3306/placeholder";
 
 export default defineConfig({
   schema: "prisma/schema.prisma",
