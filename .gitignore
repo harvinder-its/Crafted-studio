@@ -51,3 +51,6 @@ preview/
 
 # Database export produced by `npm run db:export` — contains customer data.
 migration-data.json
+
+# Full SQL build produced by `npm run db:dump` — contains customer data.
+crafted-studio-mysql.sql

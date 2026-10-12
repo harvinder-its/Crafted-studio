@@ -15,7 +15,8 @@
     "mail:check": "tsx scripts/mail-check.ts",
     "mail:preview": "tsx scripts/email-preview.ts",
     "db:export": "tsx scripts/db-export.ts",
-    "db:import": "tsx scripts/db-import.ts"
+    "db:import": "tsx scripts/db-import.ts",
+    "db:dump": "tsx scripts/db-sql-dump.ts"
   },
   "dependencies": {
     "@gsap/react": "^2.1.2",
