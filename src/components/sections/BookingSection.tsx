@@ -1,15 +1,17 @@
-import BookingWizard from "./BookingWizard";
 import SectionHeading from "./SectionHeading";
 import Reveal from "@/components/ui/Reveal";
-import { getBookingWizardData, getPublicHours } from "@/lib/public-content";
+import { getContact, getPublicHours } from "@/lib/public-content";
 
 /**
- * The step-by-step booking flow on the left, opening hours on the right — both
- * from the database, so adding a service or changing an opening time in the
- * admin shows here straight away.
+ * How to book: how to reach the shop on one side, opening hours on the other.
+ *
+ * Bookings are going to a separate system the client is still choosing, so this
+ * is deliberately a way to get in touch rather than a form — a page that asks
+ * for a phone call is honest, where a form that goes nowhere is not. When that
+ * system is picked, these buttons become a link to it and the rest stays put.
  */
 export default async function BookingSection({ withHeading = false }: { withHeading?: boolean }) {
-  const [hours, wizard] = await Promise.all([getPublicHours(), getBookingWizardData()]);
+  const [hours, contact] = await Promise.all([getPublicHours(), getContact()]);
 
   return (
     <section id="section-booking" className="pb-0 text-light" aria-label="Book an appointment">
@@ -30,14 +32,33 @@ export default async function BookingSection({ withHeading = false }: { withHead
 
         <div className="row g-4 gx-5">
           <Reveal className="col-lg-6" animation="fadeInLeft" duration={0.9}>
-            <div className="relative">
-              <BookingWizard
-                categories={wizard.categories}
-                staff={wizard.staff}
-                addOns={wizard.addOns}
-                rules={wizard.rules}
-              />
-            </div>
+            <h4 className="mb-3">Get in touch</h4>
+            <p className="mb-4">
+              Tell us the service you would like and a time that suits you, and we will confirm
+              your chair.
+            </p>
+
+            {contact.phone ? (
+              <Reveal delay={0.2} className="mb-3">
+                <a className="btn-main fx-slide" href={`tel:${contact.phone.replace(/\s/g, "")}`}>
+                  <span>Call {contact.phone}</span>
+                </a>
+              </Reveal>
+            ) : null}
+
+            <Reveal delay={0.3}>
+              <a className="btn-main fx-slide" href={`mailto:${contact.email}`}>
+                <span>Email us</span>
+              </a>
+            </Reveal>
+
+            <Reveal delay={0.4} className="mt-4">
+              <address className="fst-normal mb-0">
+                {contact.line1}
+                <br />
+                {contact.line2}
+              </address>
+            </Reveal>
           </Reveal>
 
           <Reveal className="col-lg-6" animation="fadeInRight" duration={0.9}>

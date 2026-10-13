@@ -48,3 +48,9 @@ next-env.d.ts
 
 # Rendered email previews — regenerate with `npm run mail:preview`.
 preview/
+
+# Data export taken during the MySQL evaluation — contains customer records.
+migration-data.json
+crafted-studio-mysql.sql
+crafted-studio.zip
+deployment-test.html
