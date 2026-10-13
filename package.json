@@ -13,15 +13,11 @@
     "db:seed": "prisma db seed",
     "db:studio": "prisma studio",
     "mail:check": "tsx scripts/mail-check.ts",
-    "mail:preview": "tsx scripts/email-preview.ts",
-    "db:export": "tsx scripts/db-export.ts",
-    "db:import": "tsx scripts/db-import.ts",
-    "db:dump": "tsx scripts/db-sql-dump.ts"
+    "mail:preview": "tsx scripts/email-preview.ts"
   },
   "dependencies": {
     "@gsap/react": "^2.1.2",
     "@hookform/resolvers": "^5.9.1",
-    "@prisma/adapter-mariadb": "^7.10.0",
     "@prisma/adapter-pg": "^7.10.0",
     "@prisma/client": "^7.10.0",
     "bcryptjs": "^3.0.3",
@@ -52,8 +48,5 @@
     "eslint-config-next": "16.3.4",
     "tsx": "^4.23.15",
     "typescript": "^5"
-  },
-  "engines": {
-    "node": ">=20"
   }
 }

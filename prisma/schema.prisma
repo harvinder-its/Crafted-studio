@@ -21,7 +21,7 @@ generator client {
 }
 
 datasource db {
-  provider = "mysql"
+  provider = "postgresql"
 }
 
 // ---------------------------------------------------------------- people
@@ -33,7 +33,7 @@ enum Role {
 
 model AdminUser {
   id           String    @id @default(cuid())
-  email        String    @unique @db.VarChar(320)
+  email        String    @unique
   name         String
   passwordHash String
   role         Role      @default(STAFF)
@@ -52,10 +52,10 @@ model Staff {
   name     String
   slug     String  @unique
   title    String  @default("") // "Master Barber"
-  bio      String  @default("") @db.VarChar(4000)
-  email    String? @db.VarChar(320)
+  bio      String  @default("")
+  email    String?
   phone    String?
-  imageUrl String? @db.VarChar(500)
+  imageUrl String?
   // Calendar colour for this barber, as #rrggbb.
   color    String  @default("#C8A46A")
   /// Share of each service this barber earns, as a whole percent. 0 = not tracked.
@@ -99,8 +99,9 @@ model Service {
   categoryId  String
   name        String
   slug        String          @unique
-  description String          @default("") @db.VarChar(4000)
-  imageUrl    String? @db.VarChar(500)
+  description String          @default("")
+  imageUrl    String?
+
   priceCents   Int       @default(0)
   priceMode    PriceMode @default(FIXED)
   // Charged up front when priceMode is FROM. Ignored otherwise.
@@ -211,7 +212,7 @@ model SpecialDate {
   type        SpecialDateType @default(CLOSED)
   openMinute  Int?
   closeMinute Int?
-  note        String          @default("") @db.VarChar(1000)
+  note        String          @default("")
   staff       Staff?          @relation(fields: [staffId], references: [id], onDelete: Cascade)
   staffId     String?
 
@@ -226,7 +227,7 @@ model TimeOff {
   staffId  String
   startsAt DateTime
   endsAt   DateTime
-  note     String   @default("") @db.VarChar(1000)
+  note     String   @default("")
 
   @@index([staffId, startsAt])
 }
@@ -235,10 +236,10 @@ model TimeOff {
 
 model Customer {
   id    String @id @default(cuid())
-  email String @unique @db.VarChar(320)
+  email String @unique
   name  String
   phone String
-  notes String @default("") @db.VarChar(4000)
+  notes String @default("")
 
   /// Set explicitly by staff; the booking history says who they actually see.
   preferredStaff   Staff?  @relation(fields: [preferredStaffId], references: [id], onDelete: SetNull)
@@ -313,8 +314,8 @@ model Appointment {
   stripeSessionId       String? @unique
   stripePaymentIntentId String?
 
-  customerNote String             @default("") @db.VarChar(2000)
-  staffNote    String             @default("") @db.VarChar(4000)
+  customerNote String             @default("")
+  staffNote    String             @default("")
   addOns       AppointmentAddOn[]
   payments     Payment[]
   notifications NotificationLog[]
@@ -369,7 +370,7 @@ model Payment {
   status        PaymentState  @default(PAID)
   /// Stripe id, terminal receipt number, or whatever the salon writes down.
   reference     String?
-  note          String        @default("") @db.VarChar(1000)
+  note          String        @default("")
 
   takenBy   AdminUser? @relation(fields: [takenById], references: [id], onDelete: SetNull)
   takenById String?
@@ -390,7 +391,7 @@ enum CouponType {
 model Coupon {
   id            String     @id @default(cuid())
   code          String     @unique
-  description   String     @default("") @db.VarChar(500)
+  description   String     @default("")
   type          CouponType @default(PERCENT)
   /// Percent (1-100) when type is PERCENT, otherwise cents off.
   value         Int
@@ -452,9 +453,9 @@ model NotificationLog {
   channel NotificationChannel @default(EMAIL)
   state   NotificationState   @default(QUEUED)
 
-  toAddress String @db.VarChar(320)
-  subject   String  @default("") @db.VarChar(500)
-  error     String? @db.Text
+  toAddress String
+  subject   String  @default("")
+  error     String?
 
   appointment   Appointment? @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
   appointmentId String?
@@ -474,11 +475,12 @@ model Settings {
 
   // --- general
   salonName    String @default("Crafted Studio")
-  logoUrl      String @default("/images/logo.webp") @db.VarChar(500)
+  logoUrl      String @default("/images/logo.webp")
   addressLine1 String @default("2003-1480 Dakota Street")
   addressLine2 String @default("Winnipeg, Manitoba R2N 3Y7")
   phone        String @default("")
-  notifyEmail  String @default("crafted.studio@outlook.com") @db.VarChar(320)
+  notifyEmail  String @default("crafted.studio@outlook.com")
+
   timezone String @default("America/Winnipeg")
   currency String @default("CAD")
 
@@ -494,7 +496,7 @@ model Settings {
   /// Added to every service that does not set its own buffer.
   defaultBufferMinutes Int    @default(0)
   allowSameDayBooking  Boolean @default(true)
-  cancellationPolicy   String  @default("Please give at least 24 hours' notice to cancel or reschedule.") @db.VarChar(2000)
+  cancellationPolicy   String  @default("Please give at least 24 hours' notice to cancel or reschedule.")
 
   // --- payments
   taxPercent        Int     @default(0)

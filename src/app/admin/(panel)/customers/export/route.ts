@@ -23,11 +23,9 @@ export async function GET(request: Request) {
 
   const where = q
     ? {
-        // MySQL compares strings case-insensitively under its default collation,
-        // so matching needs no mode flag — and Prisma rejects one on MySQL.
         OR: [
-          { name: { contains: q } },
-          { email: { contains: q } },
+          { name: { contains: q, mode: "insensitive" as const } },
+          { email: { contains: q, mode: "insensitive" as const } },
           { phone: { contains: q } },
         ],
       }
